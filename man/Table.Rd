@@ -4,10 +4,14 @@
 \alias{Table}
 \title{Cross tabulation and table creation}
 \usage{
-Table(...)
+Table(..., useNA = "ifany", f = list(Sum = sum))
 }
 \arguments{
 \item{...}{Arguments to be passed to table.}
+
+\item{useNA}{display NA counts}
+
+\item{f}{function to be used for summaries}
 }
 \value{
 The function return same results of table with NA (if present) and
@@ -16,5 +20,8 @@ margins.
 \description{
 This is a wrapper around table (using \code{useNA="ifany"} by
 default) and addsmargins.
+}
+\examples{
+with(airquality, Table(Month, Day))
 }
 
