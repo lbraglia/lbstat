@@ -2,3 +2,4 @@
 
 export(Table)
 export(fisher_needed)
+export(univ_table)
