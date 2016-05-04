@@ -4,8 +4,8 @@
 \alias{biv_quant}
 \title{Bivariate table for a main quantitative vector}
 \usage{
-biv_quant(x, y, na.rm = FALSE, latex = FALSE, label = NULL,
-  caption = NULL)
+biv_quant(x, y, na.rm = FALSE, add_all = TRUE, latex = FALSE,
+  label = NULL, caption = NULL)
 }
 \arguments{
 \item{x}{a quantitative variable}
@@ -13,6 +13,8 @@ biv_quant(x, y, na.rm = FALSE, latex = FALSE, label = NULL,
 \item{y}{a discrete quantitative variable, a character or a factor}
 
 \item{na.rm}{exclude missing value group for y}
+
+\item{add_all}{exclude missing value group for y}
 
 \item{latex}{output the table using \code{xtable::xtable}}
 
