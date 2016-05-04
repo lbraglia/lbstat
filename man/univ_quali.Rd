@@ -21,7 +21,7 @@ univ_quali(x = NULL, totals = TRUE, useNA = "ifany", NA_string = "NA",
 
 \item{sorting}{sorting can be "\code{asc}" or "\code{desc}"}
 
-\item{latex}{output the table using xtable::xtable}
+\item{latex}{output the table using \code{xtable::xtable}}
 
 \item{label}{latex label}
 

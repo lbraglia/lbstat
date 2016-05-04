@@ -9,7 +9,7 @@ univ_quant(x, latex = FALSE, label = NULL, caption = NULL)
 \arguments{
 \item{x}{a quantitative variable}
 
-\item{latex}{output the table using xtable::xtable}
+\item{latex}{output the table using \code{xtable::xtable}}
 
 \item{label}{latex label}
 
