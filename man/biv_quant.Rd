@@ -14,7 +14,7 @@ biv_quant(x, y, na.rm = FALSE, add_all = TRUE, latex = FALSE,
 
 \item{na.rm}{exclude missing value group for y}
 
-\item{add_all}{exclude missing value group for y}
+\item{add_all}{add "All" row}
 
 \item{latex}{output the table using \code{xtable::xtable}}
 
