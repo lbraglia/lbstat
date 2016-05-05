@@ -5,7 +5,7 @@
 \title{Univariate table for categorical data.}
 \usage{
 univ_quali(x = NULL, totals = TRUE, useNA = "ifany", NA_string = "NA",
-  round_digits = 3, sorting = NULL, latex = FALSE, label = NULL,
+  freq_sorting = c(NA, "desc", "asc"), latex = FALSE, label = NULL,
   caption = NULL)
 }
 \arguments{
@@ -17,9 +17,9 @@ univ_quali(x = NULL, totals = TRUE, useNA = "ifany", NA_string = "NA",
 
 \item{NA_string}{character used for NA's columns title}
 
-\item{round_digits}{number of rounding digits}
-
-\item{sorting}{sorting can be "\code{asc}" or "\code{desc}"}
+\item{freq_sorting}{freq based sorting: can be \code{NA} (no freq
+based sorting) "\code{desc}" (descending) or "\code{asc}"
+(ascending).}
 
 \item{latex}{output the table using \code{xtable::xtable}}
 
@@ -29,5 +29,17 @@ univ_quali(x = NULL, totals = TRUE, useNA = "ifany", NA_string = "NA",
 }
 \description{
 Univariate table for categorical data.
+}
+\examples{
+ univ_quali(x = airquality$Month)
+ univ_quali(x = airquality[, c('Month')])
+ univ_quali(x = airquality[, c('Month', 'Day')])
+ univ_quali(x = airquality[, c('Month', 'Day')], latex = TRUE)
+ univ_quali(x = airquality[, c('Month', 'Day')], latex = TRUE,
+            label = c('tab:airq_month', 'tab:airq_day'),
+            caption = c('airquality month', 'airquality day')
+ )
+ univ_quali(list('a' = rep(LETTERS[1:5],2),
+                 'b' = rep(letters[1:5],2)))
 }
 

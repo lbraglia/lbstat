@@ -21,31 +21,88 @@ Table <- function(..., useNA = 'ifany', f = list('Sum' = sum))
 #' @param totals print totals?
 #' @param useNA print NA?
 #' @param NA_string character used for NA's columns title
-## #' @param round_digits number of rounding digits
-#' @param sorting sorting can be "\code{asc}" or "\code{desc}"
+#' @param freq_sorting freq based sorting: can be \code{NA} (no freq
+#'     based sorting) "\code{desc}" (descending) or "\code{asc}"
+#'     (ascending).
 #' @param latex output the table using \code{xtable::xtable}
 #' @param label latex label
 #' @param caption latex caption
+#' @examples
+#'  univ_quali(x = airquality$Month)
+#'  univ_quali(x = airquality[, c('Month')])
+#'  univ_quali(x = airquality[, c('Month', 'Day')])
+#'  univ_quali(x = airquality[, c('Month', 'Day')], latex = TRUE)
+#'  univ_quali(x = airquality[, c('Month', 'Day')], latex = TRUE,
+#'             label = c('tab:airq_month', 'tab:airq_day'),
+#'             caption = c('airquality month', 'airquality day')
+#'  )
+#'  univ_quali(list('a' = rep(LETTERS[1:5],2),
+#'                  'b' = rep(letters[1:5],2)))
 #' @export
 univ_quali <- function(x = NULL,
                        totals = TRUE,
                        useNA = 'ifany',
                        NA_string = 'NA',
-                       ## round_digits = 3,
-                       sorting = NULL,
+                       freq_sorting = c(NA, 'desc', 'asc'),
                        latex = FALSE,
                        label = NULL,
                        caption = NULL)
 {
 
-    abs_freq <- table(x, useNA = useNA)
+    freq_sorting <- match.arg(freq_sorting)
 
-    if( is.null(sorting) ) {
+    if (is.data.frame(x)){
+        x <- as.list(x)
+    } else if (is.list(x)){
+        # do nothing
+    } else {
+        xname <- deparse(substitute(x))
+        xname <-  gsub('^.+\\$', '', xname)
+        x <- list(x)
+        names(x) <- xname
+    }
+
+    rval <- lapply(x, function(z)
+        univ_quali_worker(y = z,
+                          totals = totals,
+                          useNA = useNA,
+                          NA_string = NA_string,
+                          freq_sorting = freq_sorting))
+
+    if (latex){
+        ## normalize (otherwise hard to handle null non null cases together
+        if (is.null(label))
+            label <- ''
+        if (is.null(caption))
+            caption <- ''
+        mapply(univ_quali_latex_printer,
+               rval,
+               as.list(label),
+               as.list(caption),
+               as.list(names(rval)))
+        invisible(rval)
+    } else {
+        return(rval)
+    }
+
+}
+
+univ_quali_worker <- function(y,
+                              totals,
+                              useNA,
+                              NA_string,
+                              freq_sorting
+                              )
+{
+
+    abs_freq <- table(y, useNA = useNA)
+
+    if( is.na(freq_sorting) ) {
         ## do nothing
-    } else if(sorting == 'desc') {
+    } else if(freq_sorting == 'desc') {
         ## descending ordered frequencies
         abs_freq <- rev(sort(abs_freq))
-    } else if( sorting == 'asc') {
+    } else if( freq_sorting == 'asc') {
         ## ascending ordered frequencies
         abs_freq <- sort(abs_freq)
     }   ## otherwise, do nothing
@@ -63,17 +120,27 @@ univ_quali <- function(x = NULL,
 
     ## NA
     rownames(rval)[is.na(rownames(rval))] <- NA_string 
-
-    ## output
-    if (latex){
-        xt <- xtable::xtable(rval, label = label, caption = caption)
-        xtable::print.xtable(xt)
-        invisible(rval)
-    } else {
-        return(rval)
-    }
+    
+    return(rval)
 
 }
+
+
+univ_quali_latex_printer <- function(y,
+                                     label,
+                                     caption,
+                                     varname)
+{
+
+    if (label == '')
+        label <- sprintf('tab:%s', varname)
+    if (caption == '')
+        caption <- gsub('_', ' ', varname)
+    
+    xt <- xtable::xtable(y, label = label, caption = caption)
+    xtable::print.xtable(xt)
+}
+
 
 #' Bivariate table for categorical data.
 #' 
@@ -84,9 +151,9 @@ univ_quali <- function(x = NULL,
 #' @param totals print totals?
 #' @param useNA print NA?
 #' @param NA_string character used for NA's columns title
-## #' @param round_digits number of rounding digits
-#' @param sorting sorting can be "\code{asc}" or "\code{desc}", it is
-#'     done by row sum
+#' @param freq_sorting freq based sorting: can be \code{NA} (no freq based
+#'     sorting) "\code{desc}" (descending) or "\code{asc}"
+#'     (ascending). Sorting based on row totals.
 #' @param latex output the table using \code{xtable::xtable}
 #' @param label latex label
 #' @param caption latex caption
@@ -99,21 +166,22 @@ biv_quali <- function(x = NULL,
                       useNA = 'ifany',
                       NA_string = 'NA',
                       ## round_digits = 3,
-                      sorting = NULL,
+                      freq_sorting = c(NA, 'desc', 'asc'),
                       latex = FALSE,
                       label = NULL,
                       caption = NULL)
 {
 
+    freq_sorting <- match.arg(freq_sorting)
     abs_freq <- table(x, y, useNA = useNA)
     row_sums <- rowSums(abs_freq)
 
-    if( is.null(sorting) ) {
+    if( is.na(freq_sorting) ) {
         ## do nothing
-    } else if(sorting == 'desc') {
+    } else if(freq_sorting == 'desc') {
         ## descending ordered frequencies
         abs_freq <- abs_freq[rev(order(row_sums)), ]
-    } else if( sorting == 'asc') {
+    } else if( freq_sorting == 'asc') {
         ## ascending ordered frequencies
         abs_freq <- abs_freq[order(row_sums), ]
     }   ## otherwise, do nothing

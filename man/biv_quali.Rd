@@ -5,7 +5,7 @@
 \title{Bivariate table for categorical data.}
 \usage{
 biv_quali(x = NULL, y = NULL, totals = TRUE, useNA = "ifany",
-  NA_string = "NA", round_digits = 3, sorting = NULL, latex = FALSE,
+  NA_string = "NA", freq_sorting = c(NA, "desc", "asc"), latex = FALSE,
   label = NULL, caption = NULL)
 }
 \arguments{
@@ -21,10 +21,9 @@ character or a factor}
 
 \item{NA_string}{character used for NA's columns title}
 
-\item{round_digits}{number of rounding digits}
-
-\item{sorting}{sorting can be "\code{asc}" or "\code{desc}", it is
-done by row sum}
+\item{freq_sorting}{freq based sorting: can be \code{NA} (no freq based
+sorting) "\code{desc}" (descending) or "\code{asc}"
+(ascending). Sorting based on row totals.}
 
 \item{latex}{output the table using \code{xtable::xtable}}
 
@@ -34,5 +33,8 @@ done by row sum}
 }
 \description{
 Bivariate table for categorical data.
+}
+\examples{
+with(airquality, biv_quali(x = (OzHi = Ozone > 80), y = Month))
 }
 

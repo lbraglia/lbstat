@@ -7,7 +7,7 @@
 univ_quant(x, latex = FALSE, label = NULL, caption = NULL)
 }
 \arguments{
-\item{x}{a quantitative variable}
+\item{x}{a quantitative variable, a data.frame or a list}
 
 \item{latex}{output the table using \code{xtable::xtable}}
 
@@ -17,5 +17,11 @@ univ_quant(x, latex = FALSE, label = NULL, caption = NULL)
 }
 \description{
 Univariate table for quantitative data.
+}
+\examples{
+   univ_quant(x = airquality$Ozone)
+   univ_quant(x = airquality[, c('Ozone')])
+   univ_quant(x = airquality[, c('Ozone', 'Temp')])
+   univ_quant(list('a' = 1:10, 'b' = 2:20))
 }
 
