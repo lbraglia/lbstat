@@ -6,7 +6,7 @@
 \usage{
 biv_quali(x = NULL, y = NULL, totals = TRUE, useNA = "ifany",
   NA_string = "NA", freq_sorting = c(NA, "desc", "asc"), latex = FALSE,
-  label = NULL, caption = NULL)
+  label = NULL, caption = NULL, wb = NULL, sheets = NULL)
 }
 \arguments{
 \item{x}{row variable: a discrete quantitative variable, a
@@ -30,6 +30,11 @@ sorting) "\code{desc}" (descending) or "\code{asc}"
 \item{label}{latex label}
 
 \item{caption}{latex caption}
+
+\item{wb}{an openxlsx Workbook; if not NULL the table will be saved
+in the workbook too, aside printing}
+
+\item{sheets}{optional sheet names (same length as the number of tables)}
 }
 \description{
 Bivariate table for categorical data.

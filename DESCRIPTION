@@ -3,7 +3,7 @@ Title: Miscellaneous Stat-Related Utils
 Version: 0.1
 Authors@R: person('Luca', 'Braglia', email = 'lbraglia@mailbox.org', role = c('aut', 'cre'))
 Description: Miscellaneous stat-related utils.
-Imports: stats, xtable
+Imports: methods, stats, xtable, openxlsx
 Depends:
     R (>= 3.2.3)
 License: GPL-3

@@ -5,7 +5,7 @@
 \title{Bivariate table for a main quantitative vector}
 \usage{
 biv_quant(x, y, na.rm = FALSE, add_all = TRUE, latex = FALSE,
-  label = NULL, caption = NULL)
+  label = NULL, caption = NULL, wb = NULL, sheets = NULL)
 }
 \arguments{
 \item{x}{a quantitative variable}
@@ -21,6 +21,12 @@ biv_quant(x, y, na.rm = FALSE, add_all = TRUE, latex = FALSE,
 \item{label}{latex label}
 
 \item{caption}{latex caption}
+
+\item{wb}{an openxlsx Workbook; if not NULL the table will be saved
+in the workbook too, aside printing}
+
+\item{sheets}{optional sheet names (same length as the number of
+tables)}
 }
 \description{
 Bivariate table for a main quantitative vector

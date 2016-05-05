@@ -4,7 +4,8 @@
 \alias{univ_mr}
 \title{Percentages table for multiple categorical responses}
 \usage{
-univ_mr(x, latex = FALSE, label = NULL, caption = NULL)
+univ_mr(x, latex = FALSE, label = NULL, caption = NULL, wb = NULL,
+  sheets = NULL)
 }
 \arguments{
 \item{x}{a (chunk of) data.frame encoding multiple responses (aka
@@ -15,6 +16,12 @@ all composed of 0-1 variables)}
 \item{label}{latex label}
 
 \item{caption}{latex caption}
+
+\item{wb}{an openxlsx Workbook; if not NULL the table will be saved
+in the workbook too, aside printing}
+
+\item{sheets}{optional sheet names (same length as the number of
+tables)}
 }
 \description{
 Percentages table for multiple categorical responses

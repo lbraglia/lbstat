@@ -15,6 +15,26 @@ Table <- function(..., useNA = 'ifany', f = list('Sum' = sum))
     addmargins(base::table(useNA = useNA, ...), FUN = f)
 
 
+##
+## helper for exporting tables ... very raw for now
+##
+xlsx_table <- function(tab, wb, sheet, label, caption, varname) {
+
+    if (sheet == '')
+        sheet <- varname
+    if (label == '')
+        label <- sprintf('tab:%s', varname)
+    if (caption == '')
+        caption <- gsub('_', ' ', varname)
+
+    ## todo: use label and caption
+    openxlsx::addWorksheet(wb = wb, sheetName = sheet)
+    openxlsx::writeData(wb = wb, sheet = sheet, x = tab,
+                        rowNames = TRUE)
+}
+
+
+
 #' Univariate table for categorical data.
 #' 
 #' @param x a discrete quantitative variable, a character or a factor
@@ -27,6 +47,9 @@ Table <- function(..., useNA = 'ifany', f = list('Sum' = sum))
 #' @param latex output the table using \code{xtable::xtable}
 #' @param label latex label
 #' @param caption latex caption
+#' @param wb an openxlsx Workbook; if not NULL the table will be saved
+#'     in the workbook too, aside printing
+#' @param sheets optional sheet names (same length as the number of tables)
 #' @examples
 #'  univ_quali(x = airquality$Month)
 #'  univ_quali(x = airquality[, c('Month')])
@@ -46,11 +69,21 @@ univ_quali <- function(x = NULL,
                        freq_sorting = c(NA, 'desc', 'asc'),
                        latex = FALSE,
                        label = NULL,
-                       caption = NULL)
+                       caption = NULL,
+                       wb = NULL,
+                       sheets = NULL)
 {
 
+    ## input normalization
     freq_sorting <- match.arg(freq_sorting)
-
+    
+    if (is.null(label))
+        label <- ''
+    if (is.null(caption))
+        caption <- ''
+    if (is.null(sheets))
+        sheets <- ''
+    
     if (is.data.frame(x)){
         x <- as.list(x)
     } else if (is.list(x)){
@@ -69,12 +102,20 @@ univ_quali <- function(x = NULL,
                           NA_string = NA_string,
                           freq_sorting = freq_sorting))
 
+    
+    ## Workbook handling
+    if (methods::is(wb, "Workbook")){
+        mapply(xlsx_table,
+               rval,
+               list(wb),
+               as.list(sheets),
+               as.list(label),
+               as.list(caption),
+               as.list(names(rval)))
+    }
+
+    ## Print and return
     if (latex){
-        ## normalize (otherwise hard to handle null non null cases together
-        if (is.null(label))
-            label <- ''
-        if (is.null(caption))
-            caption <- ''
         mapply(univ_quali_latex_printer,
                rval,
                as.list(label),
@@ -157,6 +198,9 @@ univ_quali_latex_printer <- function(y,
 #' @param latex output the table using \code{xtable::xtable}
 #' @param label latex label
 #' @param caption latex caption
+#' @param wb an openxlsx Workbook; if not NULL the table will be saved
+#'     in the workbook too, aside printing
+#' @param sheets optional sheet names (same length as the number of tables)
 #' @examples
 #' with(airquality, biv_quali(x = (OzHi = Ozone > 80), y = Month))
 #' @export
@@ -169,8 +213,20 @@ biv_quali <- function(x = NULL,
                       freq_sorting = c(NA, 'desc', 'asc'),
                       latex = FALSE,
                       label = NULL,
-                      caption = NULL)
+                      caption = NULL,
+                      wb = NULL,
+                      sheets = NULL)
 {
+    xname <- gsub('^.+\\$', '', deparse(substitute(x)))
+    yname <- gsub('^.+\\$', '', deparse(substitute(y)))
+    varnames <- strtrim(paste0(xname, yname, collapse = '_'), 31)
+
+    if (is.null(label))
+        label <- ''
+    if (is.null(caption))
+        caption <- ''
+    if (is.null(sheets))
+        sheets <- ''
 
     freq_sorting <- match.arg(freq_sorting)
     abs_freq <- table(x, y, useNA = useNA)
@@ -214,6 +270,16 @@ biv_quali <- function(x = NULL,
     rownames(rval)[is.na(rownames(rval))] <- NA_string 
     colnames(rval)[is.na(colnames(rval))] <- NA_string 
 
+    ## Workbook handling
+    if (methods::is(wb, "Workbook")){
+        xlsx_table(rval,
+                   wb,
+                   sheets,
+                   label,
+                   caption,
+                   varnames)
+    }
+
     ## output
     if (latex){
         xt <- xtable::xtable(rval, label = label, caption = caption)
@@ -231,14 +297,26 @@ biv_quali <- function(x = NULL,
 #' @param latex output the table using \code{xtable::xtable}
 #' @param label latex label
 #' @param caption latex caption
+#' @param wb an openxlsx Workbook; if not NULL the table will be saved
+#'     in the workbook too, aside printing
+#' @param sheets optional sheet names (same length as the number of tables)
 #' @examples
 #'    univ_quant(x = airquality$Ozone)
 #'    univ_quant(x = airquality[, c('Ozone')])
 #'    univ_quant(x = airquality[, c('Ozone', 'Temp')])
 #'    univ_quant(list('a' = 1:10, 'b' = 2:20))
 #' @export
-univ_quant <- function(x, latex = FALSE, label = NULL, caption = NULL)
+univ_quant <- function(x, latex = FALSE, label = NULL, caption = NULL,
+                       wb = NULL, sheets = NULL)
 {
+    if (is.null(label))
+        label <- ''
+    if (is.null(caption))
+        caption <- ''
+    if (is.null(sheets))
+        sheets <- ''
+
+
     if (is.data.frame(x)){
         x <- as.list(x)
     } else if (is.list(x)){
@@ -253,6 +331,18 @@ univ_quant <- function(x, latex = FALSE, label = NULL, caption = NULL)
     rval <- lapply(x, desc)
     rval <- do.call(rbind, rval)
 
+    varnames <- strtrim(paste0(rownames(rval), collapse = '_'), 31)
+        
+    ## Workbook handling
+    if (methods::is(wb, "Workbook")){
+        xlsx_table(rval,
+                   wb,
+                   sheets,
+                   label,
+                   caption,
+                   varnames)
+    }
+    
     ## rval <- desc(x)
     if (latex) {
         xt <- xtable::xtable(rval, label = label, caption = caption)
@@ -272,14 +362,31 @@ univ_quant <- function(x, latex = FALSE, label = NULL, caption = NULL)
 #' @param latex output the table using \code{xtable::xtable}
 #' @param label latex label
 #' @param caption latex caption
+#' @param wb an openxlsx Workbook; if not NULL the table will be saved
+#'     in the workbook too, aside printing
+#' @param sheets optional sheet names (same length as the number of
+#'     tables)
 #' @export
 biv_quant <- function(x, y,
                       na.rm = FALSE,
                       add_all = TRUE,
                       latex = FALSE,
                       label = NULL,
-                      caption = NULL)
+                      caption = NULL,
+                      wb = NULL,
+                      sheets = NULL)
 {
+    xname <- gsub('^.+\\$', '', deparse(substitute(x)))
+    yname <- gsub('^.+\\$', '', deparse(substitute(y)))
+    varnames <- strtrim(paste0(xname, yname, collapse = '_'), 31)
+
+    if (is.null(label))
+        label <- ''
+    if (is.null(caption))
+        caption <- ''
+    if (is.null(sheets))
+        sheets <- ''
+
     y <- factor(y, exclude = if (na.rm) NA else NULL)
     spl <- split(x, list(y))
     if (add_all) {
@@ -288,6 +395,17 @@ biv_quant <- function(x, y,
     }
     rval <- lapply(spl, desc)
     rval <- do.call(rbind, rval)
+
+    ## Workbook handling
+    if (methods::is(wb, "Workbook")){
+        xlsx_table(rval,
+                   wb,
+                   sheets,
+                   label,
+                   caption,
+                   varnames)
+    }
+
     if (latex) {
         xtab <- xtable::xtable(rval, caption = caption, label = label)
         xtable::print.xtable(xtab)
@@ -300,23 +418,49 @@ biv_quant <- function(x, y,
 #' Percentages table for multiple categorical responses
 #' 
 #' @param x a (chunk of) data.frame encoding multiple responses (aka
-#'      all composed of 0-1 variables)
+#'     all composed of 0-1 variables)
 #' @param latex output the table using \code{xtable::xtable}
 #' @param label latex label
 #' @param caption latex caption
+#' @param wb an openxlsx Workbook; if not NULL the table will be saved
+#'     in the workbook too, aside printing
+#' @param sheets optional sheet names (same length as the number of
+#'     tables)
 #' @export
-univ_mr <- function(x, latex = FALSE, label = NULL, caption = NULL)
+univ_mr <- function(x, latex = FALSE, label = NULL, caption = NULL,
+                    wb = NULL, sheets = NULL)
 {
     if (!is.data.frame(x))
         stop('x must be a data.frame')
     if (all(x  %in% c(0, 1, NA)))
         stop('x must only include 0, 1, NA')
+
+    if (is.null(label))
+        label <- ''
+    if (is.null(caption))
+        caption <- ''
+    if (is.null(sheets))
+        sheets <- ''
+
     not_NA <- unlist(lapply(x, function(x) sum(!is.na(x))))
     s <- colSums(x, na.rm = TRUE)
     rval <- cbind('n' = s, '%' = round((s/not_NA)*100, 2))
-    row.names(rval) <- paste0(row.names(rval), ' (n = ', not_NA, ')')
-    row.names(rval) <- gsub('_', ' ', row.names(rval))
+    rownames(rval) <- paste0(rownames(rval), ' (n = ', not_NA, ')')
+    rownames(rval) <- gsub('_', ' ', rownames(rval))
     rval <- rval[order(- rval[,1]), ]
+
+    varnames <- strtrim(paste0(rownames(rval), collapse = '_'), 31)
+        
+    ## Workbook handling
+    if (methods::is(wb, "Workbook")){
+        xlsx_table(rval,
+                   wb,
+                   sheets,
+                   label,
+                   caption,
+                   varnames)
+    }
+
     if (latex) {
         xtab <- xtable::xtable(rval, caption = caption, label = label)
         xtable::print.xtable(xtab)

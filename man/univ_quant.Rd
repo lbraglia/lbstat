@@ -4,7 +4,8 @@
 \alias{univ_quant}
 \title{Univariate table for quantitative data.}
 \usage{
-univ_quant(x, latex = FALSE, label = NULL, caption = NULL)
+univ_quant(x, latex = FALSE, label = NULL, caption = NULL, wb = NULL,
+  sheets = NULL)
 }
 \arguments{
 \item{x}{a quantitative variable, a data.frame or a list}
@@ -14,6 +15,11 @@ univ_quant(x, latex = FALSE, label = NULL, caption = NULL)
 \item{label}{latex label}
 
 \item{caption}{latex caption}
+
+\item{wb}{an openxlsx Workbook; if not NULL the table will be saved
+in the workbook too, aside printing}
+
+\item{sheets}{optional sheet names (same length as the number of tables)}
 }
 \description{
 Univariate table for quantitative data.
