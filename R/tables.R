@@ -90,6 +90,8 @@ univ_quali <- function(x = NULL,
 #' @param latex output the table using \code{xtable::xtable}
 #' @param label latex label
 #' @param caption latex caption
+#' @examples
+#' with(airquality, biv_quali(x = (OzHi = Ozone > 80), y = Month))
 #' @export
 biv_quali <- function(x = NULL,
                       y = NULL,
@@ -130,19 +132,19 @@ biv_quali <- function(x = NULL,
 
     if(totals) {
 
-        ## row totals
+        ## rows totals
         row_sums <- rowSums(abs_freq)
         col_tot_perc <- row_sums / sum(row_sums)
         rval <- cbind(rval, 'Tot' = row_sums, '%' = col_tot_perc)
 
-        ## columns total
-        ## Sum <- c(colSums(rval)[1:2], NA)
-        ## rval <- rbind(rval, Sum)
+        ## columns totals
+        col_sums <- colSums(rval)
+        rval <- rbind(rval, 'Tot' = col_sums)
     }
 
-    ## NA
-    ## rownames(rval)[is.na(rownames(rval))] <- NA_string 
-    ## colnames(rval)[is.na(colnames(rval))] <- NA_string 
+    ## NA label handling
+    rownames(rval)[is.na(rownames(rval))] <- NA_string 
+    colnames(rval)[is.na(colnames(rval))] <- NA_string 
 
     ## output
     if (latex){
