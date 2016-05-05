@@ -21,7 +21,7 @@ Table <- function(..., useNA = 'ifany', f = list('Sum' = sum))
 #' @param totals print totals?
 #' @param useNA print NA?
 #' @param NA_string character used for NA's columns title
-#' @param round_digits number of rounding digits
+## #' @param round_digits number of rounding digits
 #' @param sorting sorting can be "\code{asc}" or "\code{desc}"
 #' @param latex output the table using \code{xtable::xtable}
 #' @param label latex label
@@ -31,15 +31,15 @@ univ_quali <- function(x = NULL,
                        totals = TRUE,
                        useNA = 'ifany',
                        NA_string = 'NA',
-                       round_digits = 3,
+                       ## round_digits = 3,
                        sorting = NULL,
                        latex = FALSE,
                        label = NULL,
                        caption = NULL)
 {
-    
+
     abs_freq <- table(x, useNA = useNA)
-    
+
     if( is.null(sorting) ) {
         ## do nothing
     } else if(sorting == 'desc') {
@@ -49,7 +49,7 @@ univ_quali <- function(x = NULL,
         ## ascending ordered frequencies
         abs_freq <- sort(abs_freq)
     }   ## otherwise, do nothing
-	
+
     rel_freq <- prop.table(abs_freq)
     cum_freq <- cumsum(rel_freq)
     rval <- cbind(abs_freq, rel_freq, cum_freq)
@@ -72,7 +72,7 @@ univ_quali <- function(x = NULL,
     } else {
         return(rval)
     }
-        
+
 }
 
 #' Bivariate table for categorical data.
@@ -84,7 +84,7 @@ univ_quali <- function(x = NULL,
 #' @param totals print totals?
 #' @param useNA print NA?
 #' @param NA_string character used for NA's columns title
-#' @param round_digits number of rounding digits
+## #' @param round_digits number of rounding digits
 #' @param sorting sorting can be "\code{asc}" or "\code{desc}", it is
 #'     done by row sum
 #' @param latex output the table using \code{xtable::xtable}
@@ -98,16 +98,16 @@ biv_quali <- function(x = NULL,
                       totals = TRUE,
                       useNA = 'ifany',
                       NA_string = 'NA',
-                      round_digits = 3,
+                      ## round_digits = 3,
                       sorting = NULL,
                       latex = FALSE,
                       label = NULL,
                       caption = NULL)
 {
-    
+
     abs_freq <- table(x, y, useNA = useNA)
     row_sums <- rowSums(abs_freq)
-        
+
     if( is.null(sorting) ) {
         ## do nothing
     } else if(sorting == 'desc') {
@@ -124,7 +124,7 @@ biv_quali <- function(x = NULL,
 
     ## cbind together
     rval <- cbind(abs_freq, rel_freq)
-   
+
     ## a little trick for column right ordering
     id_seq <- matrix(c(1:ncol(rval)), nrow = 2, byrow = TRUE)
     dim(id_seq) <- NULL
@@ -154,32 +154,46 @@ biv_quali <- function(x = NULL,
     } else {
         return(rval)
     }
-        
-}
 
+}
 
 #' Univariate table for quantitative data.
 #' 
-#' @param x a quantitative variable
+#' @param x a quantitative variable, a data.frame or a list
 #' @param latex output the table using \code{xtable::xtable}
 #' @param label latex label
 #' @param caption latex caption
+#' @examples
+#'    univ_quant(x = airquality$Ozone)
+#'    univ_quant(x = airquality[, c('Ozone')])
+#'    univ_quant(x = airquality[, c('Ozone', 'Temp')])
+#'    univ_quant(list('a' = 1:10, 'b' = 2:20))
 #' @export
 univ_quant <- function(x, latex = FALSE, label = NULL, caption = NULL)
 {
-    rval <- desc(x)
+    if (is.data.frame(x)){
+        x <- as.list(x)
+    } else if (is.list(x)){
+        # do nothing
+    } else {
+        xname <- deparse(substitute(x))
+        xname <-  gsub('^.+\\$', '', xname)
+        x <- list(x)
+        names(x) <- xname
+    }
+
+    rval <- lapply(x, desc)
+    rval <- do.call(rbind, rval)
+
+    ## rval <- desc(x)
     if (latex) {
-        names_ <- names(rval)
-        m <- t(matrix(rval))
-        colnames(m) <- names_
-        xt <- xtable::xtable(m, label = label, caption = caption)
-        xtable::print.xtable(xt, include.rownames = FALSE)
+        xt <- xtable::xtable(rval, label = label, caption = caption)
+        xtable::print.xtable(xt)
         invisible(rval)
     } else {
         return(rval)
     }
 }
-
 
 #' Bivariate table for a main quantitative vector 
 #' 
@@ -214,8 +228,6 @@ biv_quant <- function(x, y,
         return(rval)
     }
 }
-
-
 
 #' Percentages table for multiple categorical responses
 #' 
