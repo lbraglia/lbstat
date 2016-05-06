@@ -16,8 +16,9 @@ fisher_needed <- function(x = NULL,
 
     if(length(x) != length(y))
         stop("x and y don't have the same length")
-    
+
     ## Result list
+    res <- list()
     res$table <- table(x, y)
 
     ## Under indipendence...
