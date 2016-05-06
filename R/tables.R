@@ -219,7 +219,7 @@ biv_quali <- function(x = NULL,
 {
     xname <- gsub('^.+\\$', '', deparse(substitute(x)))
     yname <- gsub('^.+\\$', '', deparse(substitute(y)))
-    varnames <- strtrim(paste0(xname, yname, collapse = '_'), 31)
+    varnames <- strtrim(paste(xname, yname, sep = '_'), 31)
 
     if (is.null(label))
         label <- ''
@@ -331,7 +331,7 @@ univ_quant <- function(x, latex = FALSE, label = NULL, caption = NULL,
     rval <- lapply(x, desc)
     rval <- do.call(rbind, rval)
 
-    varnames <- strtrim(paste0(rownames(rval), collapse = '_'), 31)
+    varnames <- strtrim(paste(rownames(rval), collapse = '_'), 31)
         
     ## Workbook handling
     if (methods::is(wb, "Workbook")){
@@ -378,7 +378,7 @@ biv_quant <- function(x, y,
 {
     xname <- gsub('^.+\\$', '', deparse(substitute(x)))
     yname <- gsub('^.+\\$', '', deparse(substitute(y)))
-    varnames <- strtrim(paste0(xname, yname, collapse = '_'), 31)
+    varnames <- strtrim(paste(xname, yname, sep = '_'), 31)
 
     if (is.null(label))
         label <- ''
@@ -393,7 +393,7 @@ biv_quant <- function(x, y,
         all_ <- split(x, list('All'))
         spl <- c(spl, all_)
     }
-    rval <- lapply(spl, desc)
+    rval <- lapply(spl, desc, exclude = 'NA')
     rval <- do.call(rbind, rval)
 
     ## Workbook handling
@@ -449,7 +449,7 @@ univ_mr <- function(x, latex = FALSE, label = NULL, caption = NULL,
     rownames(rval) <- gsub('_', ' ', rownames(rval))
     rval <- rval[order(- rval[,1]), ]
 
-    varnames <- strtrim(paste0(rownames(rval), collapse = '_'), 31)
+    varnames <- strtrim(paste(rownames(rval), collapse = '_'), 31)
         
     ## Workbook handling
     if (methods::is(wb, "Workbook")){

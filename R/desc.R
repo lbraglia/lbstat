@@ -3,10 +3,22 @@
 #' A vector of common descriptive statistics for quantitative data
 #' @param x a quantitative variable
 #' @param na.rm remove not available values
+#' @param exclude which statistic to exclude? character vector 
 #' @export
-desc <- function(x, na.rm = TRUE){
+desc <- function(x, na.rm = TRUE, exclude = ''){
     qq <- unname(stats::quantile(x, probs = c(0.25, 0.5, 0.75), na.rm = na.rm))
-    
+
+    exclude <- tolower(exclude)
+    Exclude <- c(any(exclude %in% 'n'),
+                 any(exclude %in% c('na',NA)),
+                 any(exclude %in% c('min')),
+                 any(exclude %in% c('1st qu.')),
+                 any(exclude %in% c('median')),
+                 any(exclude %in% c('mean')),
+                 any(exclude %in% c('3rd qu.')),
+                 any(exclude %in% c('max')),
+                 any(exclude %in% c('std. dev.')))
+
     c('n' = length(x),
       'NA' = sum(is.na(x)),
       'Min' = min(x, na.rm = na.rm),
@@ -15,6 +27,6 @@ desc <- function(x, na.rm = TRUE){
       'Mean' = mean(x, na.rm = na.rm),
       '3rd Qu.' = qq[3],
       'Max' = max(x, na.rm = na.rm), 
-      'StdDev' = sd(x, na.rm = na.rm)
-     )
+      'Std. Dev.' = sd(x, na.rm = na.rm)
+     )[!Exclude]
 }

@@ -4,12 +4,14 @@
 \alias{desc}
 \title{A vector of common descriptive statistics for quantitative data}
 \usage{
-desc(x, na.rm = TRUE)
+desc(x, na.rm = TRUE, exclude = "")
 }
 \arguments{
 \item{x}{a quantitative variable}
 
 \item{na.rm}{remove not available values}
+
+\item{exclude}{which statistic to exclude? character vector}
 }
 \description{
 A vector of common descriptive statistics for quantitative data
