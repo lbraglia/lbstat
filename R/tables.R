@@ -27,6 +27,8 @@ xlsx_table <- function(tab, wb, sheet, label, caption, varname) {
     if (caption == '')
         caption <- gsub('_', ' ', varname)
 
+    sheet <- strtrim(sheet, 31)
+    
     ## todo: use label and caption
     openxlsx::addWorksheet(wb = wb, sheetName = sheet)
     openxlsx::writeData(wb = wb, sheet = sheet, x = tab,
