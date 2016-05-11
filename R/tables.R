@@ -150,10 +150,11 @@ univ_quali_worker <- function(y,
         abs_freq <- sort(abs_freq)
     }   ## otherwise, do nothing
 
-    rel_freq <- prop.table(abs_freq)
+    rel_freq <- prop.table(abs_freq) * 100
     cum_freq <- cumsum(rel_freq)
     rval <- cbind(abs_freq, rel_freq, cum_freq)
-    colnames(rval) <- c('Abs', 'Rel', 'Cum')
+    ## colnames(rval) <- c('Abs', 'Rel', 'Cum')
+    colnames(rval) <- c('n', '%', 'cum. %')
 
     if(totals) {
         ## row totals
@@ -180,7 +181,11 @@ univ_quali_latex_printer <- function(y,
     if (caption == '')
         caption <- gsub('_', ' ', varname)
     
-    xt <- xtable::xtable(y, label = label, caption = caption)
+    xt <- xtable::xtable(y,
+                         ## align = 'ccc',
+                         digits = c(0, 0, 2, 2),
+                         label = label,
+                         caption = caption)
     xtable::print.xtable(xt)
 }
 
@@ -245,7 +250,7 @@ biv_quali <- function(x = NULL,
     }   ## otherwise, do nothing
 
     ## column percentages
-    rel_freq <- prop.table(abs_freq, margin = 2)
+    rel_freq <- prop.table(abs_freq, margin = 2) * 100
     colnames(rel_freq) <- rep('%', ncol(rel_freq))
 
     ## cbind together
@@ -260,7 +265,7 @@ biv_quali <- function(x = NULL,
 
         ## rows totals
         row_sums <- rowSums(abs_freq)
-        col_tot_perc <- row_sums / sum(row_sums)
+        col_tot_perc <- (row_sums / sum(row_sums)) * 100
         rval <- cbind(rval, 'Tot' = row_sums, '%' = col_tot_perc)
 
         ## columns totals
@@ -284,7 +289,12 @@ biv_quali <- function(x = NULL,
 
     ## output
     if (latex){
-        xt <- xtable::xtable(rval, label = label, caption = caption)
+        ## alternate 0,2 for number of columns/2
+        digits <- rep(c(0,2), ncol(rval)/2)
+        xt <- xtable::xtable(rval,
+                             ## align = 'todo',
+                             digits = c(0, digits),
+                             label = label, caption = caption)
         xtable::print.xtable(xt)
         invisible(rval)
     } else {
@@ -347,7 +357,13 @@ univ_quant <- function(x, latex = FALSE, label = NULL, caption = NULL,
     
     ## rval <- desc(x)
     if (latex) {
-        xt <- xtable::xtable(rval, label = label, caption = caption)
+        ## 0 for n and NA, 2 for the others
+        digits <- (!(colnames(rval) %in% c('n', 'NA')))*2
+        xt <- xtable::xtable(rval,
+                             ## align = 'c',
+                             digits = c(0, digits),
+                             label = label,
+                             caption = caption)
         xtable::print.xtable(xt)
         invisible(rval)
     } else {
@@ -409,7 +425,13 @@ biv_quant <- function(x, y,
     }
 
     if (latex) {
-        xtab <- xtable::xtable(rval, caption = caption, label = label)
+        ## 0 for n and NA, 2 for the others
+        digits <- (!(colnames(rval) %in% c('n', 'NA')))*2
+        xtab <- xtable::xtable(rval,
+                               ## align = 'c',
+                               digits = c(0, digits),
+                               caption = caption,
+                               label = label)
         xtable::print.xtable(xtab)
         invisible(rval)
     } else {
@@ -464,7 +486,11 @@ univ_mr <- function(x, latex = FALSE, label = NULL, caption = NULL,
     }
 
     if (latex) {
-        xtab <- xtable::xtable(rval, caption = caption, label = label)
+        xtab <- xtable::xtable(rval,
+                               ## align = 'cc',
+                               digits = c(0, 0, 2),
+                               caption = caption,
+                               label = label)
         xtable::print.xtable(xtab)
         invisible(rval)
     } else {
