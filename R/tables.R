@@ -447,7 +447,7 @@ univ_mr <- function(x, latex = FALSE, label = NULL, caption = NULL,
     not_NA <- unlist(lapply(x, function(x) sum(!is.na(x))))
     s <- colSums(x, na.rm = TRUE)
     rval <- cbind('n' = s, '%' = round((s/not_NA)*100, 2))
-    rownames(rval) <- paste0(rownames(rval), ' (n = ', not_NA, ')')
+    rownames(rval) <- paste0(rownames(rval), ' (N = ', not_NA, ')')
     rownames(rval) <- gsub('_', ' ', rownames(rval))
     rval <- rval[order(- rval[,1]), ]
 
