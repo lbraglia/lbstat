@@ -450,7 +450,9 @@ biv_quant <- function(x, y,
         all_ <- split(x, list('All'))
         spl <- c(spl, all_)
     }
-    rval <- lapply(spl, desc, exclude = 'NA')
+    rval <- lapply(spl, desc
+                 #, exclude = 'NA'
+                   )
     rval <- do.call(rbind, rval)
 
     ## Workbook handling
