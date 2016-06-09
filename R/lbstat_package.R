@@ -10,4 +10,6 @@
 #' @importFrom stats sd
 #' @importFrom xtable print.xtable
 #' @importFrom xtable xtable
+#' @importFrom xtable caption
+#' @importFrom xtable label
 NULL

@@ -47,6 +47,9 @@ xlsx_table <- function(tab, wb, sheet, label, caption, varname) {
 #'     based sorting) "\code{desc}" (descending) or "\code{asc}"
 #'     (ascending).
 #' @param latex output the table using \code{xtable::xtable}
+#' @param latex_floating use floating environment for
+#' latex printing (default = TRUE)
+#' @param latex_placement table placement for latex printing
 #' @param label latex label
 #' @param caption latex caption
 #' @param wb an openxlsx Workbook; if not NULL the table will be saved
@@ -70,6 +73,8 @@ univ_quali <- function(x = NULL,
                        NA_string = 'NA',
                        freq_sorting = c(NA, 'desc', 'asc'),
                        latex = FALSE,
+                       latex_floating = TRUE,
+                       latex_placement = 'ht',
                        label = NULL,
                        caption = NULL,
                        wb = NULL,
@@ -122,7 +127,10 @@ univ_quali <- function(x = NULL,
                rval,
                as.list(label),
                as.list(caption),
-               as.list(names(rval)))
+               as.list(names(rval)),
+               as.list(latex_floating),
+               as.list(latex_placement)
+               )
         invisible(rval)
     } else {
         return(rval)
@@ -173,7 +181,10 @@ univ_quali_worker <- function(y,
 univ_quali_latex_printer <- function(y,
                                      label,
                                      caption,
-                                     varname)
+                                     varname,
+                                     latex_floating,
+                                     latex_placement
+                                     )
 {
 
     if (label == '')
@@ -186,7 +197,10 @@ univ_quali_latex_printer <- function(y,
                          digits = c(0, 0, 2, 2),
                          label = label,
                          caption = caption)
-    xtable::print.xtable(xt)
+    xtable::print.xtable(xt,
+                         floating = latex_floating,
+                         table.placement = latex_placement)
+
 }
 
 
@@ -203,6 +217,9 @@ univ_quali_latex_printer <- function(y,
 #'     sorting) "\code{desc}" (descending) or "\code{asc}"
 #'     (ascending). Sorting based on row totals.
 #' @param latex output the table using \code{xtable::xtable}
+#' @param latex_floating use floating environment for
+#' latex printing (default = TRUE)
+#' @param latex_placement table placement for latex printing
 #' @param label latex label
 #' @param caption latex caption
 #' @param wb an openxlsx Workbook; if not NULL the table will be saved
@@ -219,6 +236,8 @@ biv_quali <- function(x = NULL,
                       ## round_digits = 3,
                       freq_sorting = c(NA, 'desc', 'asc'),
                       latex = FALSE,
+                      latex_floating = TRUE,
+                      latex_placement = 'ht',
                       label = NULL,
                       caption = NULL,
                       wb = NULL,
@@ -295,7 +314,10 @@ biv_quali <- function(x = NULL,
                              ## align = 'todo',
                              digits = c(0, digits),
                              label = label, caption = caption)
-        xtable::print.xtable(xt)
+        xtable::print.xtable(xt,
+                             floating = latex_floating,
+                             table.placement = latex_placement
+                             )
         invisible(rval)
     } else {
         return(rval)
@@ -307,6 +329,9 @@ biv_quali <- function(x = NULL,
 #' 
 #' @param x a quantitative variable, a data.frame or a list
 #' @param latex output the table using \code{xtable::xtable}
+#' @param latex_floating use floating environment for
+#' latex printing (default = TRUE)
+#' @param latex_placement table placement for latex printing
 #' @param label latex label
 #' @param caption latex caption
 #' @param wb an openxlsx Workbook; if not NULL the table will be saved
@@ -318,8 +343,14 @@ biv_quali <- function(x = NULL,
 #'    univ_quant(x = airquality[, c('Ozone', 'Temp')])
 #'    univ_quant(list('a' = 1:10, 'b' = 2:20))
 #' @export
-univ_quant <- function(x, latex = FALSE, label = NULL, caption = NULL,
-                       wb = NULL, sheets = NULL)
+univ_quant <- function(x,
+                       latex = FALSE,
+                       latex_floating = TRUE,
+                       latex_placement = 'ht',
+                       label = NULL,
+                       caption = NULL,
+                       wb = NULL,
+                       sheets = NULL)
 {
     if (is.null(label))
         label <- ''
@@ -364,7 +395,10 @@ univ_quant <- function(x, latex = FALSE, label = NULL, caption = NULL,
                              digits = c(0, digits),
                              label = label,
                              caption = caption)
-        xtable::print.xtable(xt)
+        xtable::print.xtable(xt,
+                             floating = latex_floating,
+                             table.placement = latex_placement
+                             )
         invisible(rval)
     } else {
         return(rval)
@@ -378,6 +412,9 @@ univ_quant <- function(x, latex = FALSE, label = NULL, caption = NULL,
 #' @param na.rm exclude missing value group for y
 #' @param add_all add "All" row
 #' @param latex output the table using \code{xtable::xtable}
+#' @param latex_floating use floating environment for
+#' latex printing (default = TRUE)
+#' @param latex_placement table placement for latex printing
 #' @param label latex label
 #' @param caption latex caption
 #' @param wb an openxlsx Workbook; if not NULL the table will be saved
@@ -389,6 +426,8 @@ biv_quant <- function(x, y,
                       na.rm = FALSE,
                       add_all = TRUE,
                       latex = FALSE,
+                      latex_floating = TRUE,
+                      latex_placement = 'ht',
                       label = NULL,
                       caption = NULL,
                       wb = NULL,
@@ -432,7 +471,9 @@ biv_quant <- function(x, y,
                                digits = c(0, digits),
                                caption = caption,
                                label = label)
-        xtable::print.xtable(xtab)
+        xtable::print.xtable(xtab,
+                             floating = latex_floating,
+                             table.placement = latex_placement)
         invisible(rval)
     } else {
         return(rval)

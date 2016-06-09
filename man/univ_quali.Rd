@@ -5,7 +5,8 @@
 \title{Univariate table for categorical data.}
 \usage{
 univ_quali(x = NULL, totals = TRUE, useNA = "ifany", NA_string = "NA",
-  freq_sorting = c(NA, "desc", "asc"), latex = FALSE, label = NULL,
+  freq_sorting = c(NA, "desc", "asc"), latex = FALSE,
+  latex_floating = TRUE, latex_placement = "ht", label = NULL,
   caption = NULL, wb = NULL, sheets = NULL)
 }
 \arguments{
@@ -22,6 +23,11 @@ based sorting) "\code{desc}" (descending) or "\code{asc}"
 (ascending).}
 
 \item{latex}{output the table using \code{xtable::xtable}}
+
+\item{latex_floating}{use floating environment for
+latex printing (default = TRUE)}
+
+\item{latex_placement}{table placement for latex printing}
 
 \item{label}{latex label}
 

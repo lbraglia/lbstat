@@ -6,7 +6,8 @@
 \usage{
 biv_quali(x = NULL, y = NULL, totals = TRUE, useNA = "ifany",
   NA_string = "NA", freq_sorting = c(NA, "desc", "asc"), latex = FALSE,
-  label = NULL, caption = NULL, wb = NULL, sheets = NULL)
+  latex_floating = TRUE, latex_placement = "ht", label = NULL,
+  caption = NULL, wb = NULL, sheets = NULL)
 }
 \arguments{
 \item{x}{row variable: a discrete quantitative variable, a
@@ -26,6 +27,11 @@ sorting) "\code{desc}" (descending) or "\code{asc}"
 (ascending). Sorting based on row totals.}
 
 \item{latex}{output the table using \code{xtable::xtable}}
+
+\item{latex_floating}{use floating environment for
+latex printing (default = TRUE)}
+
+\item{latex_placement}{table placement for latex printing}
 
 \item{label}{latex label}
 

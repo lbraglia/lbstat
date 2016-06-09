@@ -5,7 +5,8 @@
 \title{Bivariate table for a main quantitative vector}
 \usage{
 biv_quant(x, y, na.rm = FALSE, add_all = TRUE, latex = FALSE,
-  label = NULL, caption = NULL, wb = NULL, sheets = NULL)
+  latex_floating = TRUE, latex_placement = "ht", label = NULL,
+  caption = NULL, wb = NULL, sheets = NULL)
 }
 \arguments{
 \item{x}{a quantitative variable}
@@ -17,6 +18,11 @@ biv_quant(x, y, na.rm = FALSE, add_all = TRUE, latex = FALSE,
 \item{add_all}{add "All" row}
 
 \item{latex}{output the table using \code{xtable::xtable}}
+
+\item{latex_floating}{use floating environment for
+latex printing (default = TRUE)}
+
+\item{latex_placement}{table placement for latex printing}
 
 \item{label}{latex label}
 

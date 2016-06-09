@@ -4,13 +4,19 @@
 \alias{univ_quant}
 \title{Univariate table for quantitative data.}
 \usage{
-univ_quant(x, latex = FALSE, label = NULL, caption = NULL, wb = NULL,
+univ_quant(x, latex = FALSE, latex_floating = TRUE,
+  latex_placement = "ht", label = NULL, caption = NULL, wb = NULL,
   sheets = NULL)
 }
 \arguments{
 \item{x}{a quantitative variable, a data.frame or a list}
 
 \item{latex}{output the table using \code{xtable::xtable}}
+
+\item{latex_floating}{use floating environment for
+latex printing (default = TRUE)}
+
+\item{latex_placement}{table placement for latex printing}
 
 \item{label}{latex label}
 
