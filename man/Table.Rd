@@ -4,7 +4,8 @@
 \alias{Table}
 \title{Cross tabulation and table creation}
 \usage{
-Table(..., useNA = "ifany", f = list(Sum = sum))
+Table(..., useNA = "ifany", f = list(Sum = sum), margin = NULL,
+  quiet = TRUE)
 }
 \arguments{
 \item{...}{Arguments to be passed to table.}
@@ -12,6 +13,10 @@ Table(..., useNA = "ifany", f = list(Sum = sum))
 \item{useNA}{display NA counts}
 
 \item{f}{function to be used for summaries}
+
+\item{margin}{addmargins margin parameter}
+
+\item{quiet}{addmargins quiet parameter}
 }
 \value{
 The function return same results of table with NA (if present) and

@@ -6,14 +6,20 @@
 #' @param ... Arguments to be passed to table.
 #' @param useNA display NA counts
 #' @param f function to be used for summaries
+#' @param quiet addmargins quiet parameter
+#' @param margin addmargins margin parameter
 #' @return The function return same results of table with NA (if present) and
 #' margins.
 #' @examples
 #' with(airquality, Table(Month, Day))
 #' @export
-Table <- function(..., useNA = 'ifany', f = list('Sum' = sum))
-    addmargins(base::table(useNA = useNA, ...), FUN = f)
-
+Table <- function(..., useNA = 'ifany', f = list('Sum' = sum),
+                  margin = NULL, quiet = TRUE){
+    tab <- base::table(useNA = useNA, ...)
+    if (is.null(margin))
+        margin <- seq_along(dim(tab))
+    addmargins(tab, FUN = f, quiet = quiet, margin = margin)
+}
 
 ##
 ## helper for exporting tables ... very raw for now
@@ -133,7 +139,12 @@ univ_quali <- function(x = NULL,
                )
         invisible(rval)
     } else {
-        return(rval)
+        ## if it's a list of length 1, return the only element not as
+        ## list element
+        if (length(rval) == 1L)
+            return(rval[[1]])
+        else
+            return(rval)
     }
 
 }
