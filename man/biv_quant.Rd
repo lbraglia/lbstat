@@ -4,9 +4,10 @@
 \alias{biv_quant}
 \title{Bivariate table for a main quantitative vector}
 \usage{
-biv_quant(x, y, na.rm = FALSE, add_all = TRUE, latex = FALSE,
-  latex_floating = TRUE, latex_placement = "ht", label = NULL,
-  caption = NULL, wb = NULL, sheets = NULL)
+biv_quant(x, y, na.rm = FALSE, add_all = TRUE, test = c("none", "anova",
+  "kruskal.test"), latex = TRUE, latex_floating = TRUE,
+  latex_placement = "ht", label = NULL, caption = NULL, wb = NULL,
+  sheets = NULL)
 }
 \arguments{
 \item{x}{a quantitative variable}
@@ -16,6 +17,8 @@ biv_quant(x, y, na.rm = FALSE, add_all = TRUE, latex = FALSE,
 \item{na.rm}{exclude missing value group for y}
 
 \item{add_all}{add "All" row}
+
+\item{test}{one of \code{'none'}, \code{'anova'}, or \code{'kruskal.test'}}
 
 \item{latex}{output the table using \code{xtable::xtable}}
 

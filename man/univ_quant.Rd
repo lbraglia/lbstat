@@ -4,9 +4,8 @@
 \alias{univ_quant}
 \title{Univariate table for quantitative data.}
 \usage{
-univ_quant(x, latex = FALSE, latex_floating = TRUE,
-  latex_placement = "ht", label = NULL, caption = NULL, wb = NULL,
-  sheets = NULL)
+univ_quant(x, latex = TRUE, latex_floating = TRUE, latex_placement = "ht",
+  label = NULL, caption = NULL, wb = NULL, sheets = NULL)
 }
 \arguments{
 \item{x}{a quantitative variable, a data.frame or a list}

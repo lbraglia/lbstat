@@ -5,9 +5,9 @@
 \title{Bivariate table for categorical data.}
 \usage{
 biv_quali(x = NULL, y = NULL, totals = TRUE, useNA = "ifany",
-  NA_string = "NA", freq_sorting = c(NA, "desc", "asc"), latex = FALSE,
-  latex_floating = TRUE, latex_placement = "ht", label = NULL,
-  caption = NULL, wb = NULL, sheets = NULL)
+  NA_string = "NA", freq_sorting = c(NA, "desc", "asc"), test = TRUE,
+  latex = TRUE, latex_floating = TRUE, latex_placement = "ht",
+  label = NULL, caption = NULL, wb = NULL, sheets = NULL)
 }
 \arguments{
 \item{x}{row variable: a discrete quantitative variable, a
@@ -22,14 +22,17 @@ character or a factor}
 
 \item{NA_string}{character used for NA's columns title}
 
-\item{freq_sorting}{freq based sorting: can be \code{NA} (no freq based
-sorting) "\code{desc}" (descending) or "\code{asc}"
+\item{freq_sorting}{freq based sorting: can be \code{NA} (no freq
+based sorting) "\code{desc}" (descending) or "\code{asc}"
 (ascending). Sorting based on row totals.}
+
+\item{test}{if \code{TRUE} (default) fisher or chi square test will
+be performed (using fisher_needed to decide which one)}
 
 \item{latex}{output the table using \code{xtable::xtable}}
 
-\item{latex_floating}{use floating environment for
-latex printing (default = TRUE)}
+\item{latex_floating}{use floating environment for latex printing
+(default = TRUE)}
 
 \item{latex_placement}{table placement for latex printing}
 
@@ -40,7 +43,8 @@ latex printing (default = TRUE)}
 \item{wb}{an openxlsx Workbook; if not NULL the table will be saved
 in the workbook too, aside printing}
 
-\item{sheets}{optional sheet names (same length as the number of tables)}
+\item{sheets}{optional sheet names (same length as the number of
+tables)}
 }
 \description{
 Bivariate table for categorical data.

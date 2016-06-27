@@ -4,7 +4,7 @@
 \alias{univ_mr}
 \title{Percentages table for multiple categorical responses}
 \usage{
-univ_mr(x, latex = FALSE, label = NULL, caption = NULL, wb = NULL,
+univ_mr(x, latex = TRUE, label = NULL, caption = NULL, wb = NULL,
   sheets = NULL)
 }
 \arguments{

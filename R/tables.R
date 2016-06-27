@@ -24,7 +24,7 @@ Table <- function(..., useNA = 'ifany', f = list('Sum' = sum),
 ##
 ## helper for exporting tables ... very raw for now
 ##
-xlsx_table <- function(tab, wb, sheet, label, caption, varname) {
+xlsx_table <- function(tab, test_df, wb, sheet, label, caption, varname) {
 
     if (sheet == '')
         sheet <- varname
@@ -39,6 +39,15 @@ xlsx_table <- function(tab, wb, sheet, label, caption, varname) {
     openxlsx::addWorksheet(wb = wb, sheetName = sheet)
     openxlsx::writeData(wb = wb, sheet = sheet, x = tab,
                         rowNames = TRUE)
+
+    ## test
+    if (is.data.frame(test_df)){
+        tab_rows <- nrow(tab) + 1 # +1 for table header
+        spacing <- 2
+        start_row <- tab_rows + spacing
+        openxlsx::writeData(wb = wb, sheet = sheet, x = test_df,
+                            rowNames = FALSE, startRow = start_row)
+    }
 }
 
 
@@ -78,7 +87,7 @@ univ_quali <- function(x = NULL,
                        useNA = 'ifany',
                        NA_string = 'NA',
                        freq_sorting = c(NA, 'desc', 'asc'),
-                       latex = FALSE,
+                       latex = TRUE,
                        latex_floating = TRUE,
                        latex_placement = 'ht',
                        label = NULL,
@@ -120,6 +129,7 @@ univ_quali <- function(x = NULL,
     if (methods::is(wb, "Workbook")){
         mapply(xlsx_table,
                rval,
+               list(NULL), # test
                list(wb),
                as.list(sheets),
                as.list(label),
@@ -224,18 +234,21 @@ univ_quali_latex_printer <- function(y,
 #' @param totals print totals?
 #' @param useNA print NA?
 #' @param NA_string character used for NA's columns title
-#' @param freq_sorting freq based sorting: can be \code{NA} (no freq based
-#'     sorting) "\code{desc}" (descending) or "\code{asc}"
+#' @param freq_sorting freq based sorting: can be \code{NA} (no freq
+#'     based sorting) "\code{desc}" (descending) or "\code{asc}"
 #'     (ascending). Sorting based on row totals.
+#' @param test if \code{TRUE} (default) fisher or chi square test will
+#'     be performed (using fisher_needed to decide which one)
 #' @param latex output the table using \code{xtable::xtable}
-#' @param latex_floating use floating environment for
-#' latex printing (default = TRUE)
+#' @param latex_floating use floating environment for latex printing
+#'     (default = TRUE)
 #' @param latex_placement table placement for latex printing
 #' @param label latex label
 #' @param caption latex caption
 #' @param wb an openxlsx Workbook; if not NULL the table will be saved
 #'     in the workbook too, aside printing
-#' @param sheets optional sheet names (same length as the number of tables)
+#' @param sheets optional sheet names (same length as the number of
+#'     tables)
 #' @examples
 #' with(airquality, biv_quali(x = (OzHi = Ozone > 80), y = Month))
 #' @export
@@ -246,7 +259,8 @@ biv_quali <- function(x = NULL,
                       NA_string = 'NA',
                       ## round_digits = 3,
                       freq_sorting = c(NA, 'desc', 'asc'),
-                      latex = FALSE,
+                      test = TRUE,
+                      latex = TRUE,
                       latex_floating = TRUE,
                       latex_placement = 'ht',
                       label = NULL,
@@ -307,9 +321,25 @@ biv_quali <- function(x = NULL,
     rownames(rval)[is.na(rownames(rval))] <- NA_string 
     colnames(rval)[is.na(colnames(rval))] <- NA_string 
 
+    ## test handling
+    if (test){
+        if (fisher_needed(x = x, y = y)){
+            test <- stats::fisher.test(x = x, y = y)
+            test_name <- 'Fisher'
+        } else {
+            test <- stats::chisq.test(x = x, y = y)
+            test_name <- 'Chi square'
+         }
+        test_p <- lbmisc::pretty_pval(test$p.value)
+        test_string <- sprintf('%s test p-value: %s', test_name, test_p)
+        test_df <- data.frame('Test' = test_name, 'p-value' = test_p)
+        caption <- paste0(caption, ' (', test_string, ')')
+    }
+    
     ## Workbook handling
     if (methods::is(wb, "Workbook")){
         xlsx_table(rval,
+                   test_df,
                    wb,
                    sheets,
                    label,
@@ -327,11 +357,13 @@ biv_quali <- function(x = NULL,
                              label = label, caption = caption)
         xtable::print.xtable(xt,
                              floating = latex_floating,
-                             table.placement = latex_placement
-                             )
+                             table.placement = latex_placement)
         invisible(rval)
     } else {
-        return(rval)
+        ## normal printing
+        print(rval)
+        message('\n', caption, '\n')
+        invisible(rval)
     }
 
 }
@@ -355,7 +387,7 @@ biv_quali <- function(x = NULL,
 #'    univ_quant(list('a' = 1:10, 'b' = 2:20))
 #' @export
 univ_quant <- function(x,
-                       latex = FALSE,
+                       latex = TRUE,
                        latex_floating = TRUE,
                        latex_placement = 'ht',
                        label = NULL,
@@ -369,7 +401,6 @@ univ_quant <- function(x,
         caption <- ''
     if (is.null(sheets))
         sheets <- ''
-
 
     if (is.data.frame(x)){
         x <- as.list(x)
@@ -390,6 +421,7 @@ univ_quant <- function(x,
     ## Workbook handling
     if (methods::is(wb, "Workbook")){
         xlsx_table(rval,
+                   NULL, # test
                    wb,
                    sheets,
                    label,
@@ -422,6 +454,7 @@ univ_quant <- function(x,
 #' @param y a discrete quantitative variable, a character or a factor
 #' @param na.rm exclude missing value group for y
 #' @param add_all add "All" row
+#' @param test one of \code{'none'}, \code{'anova'}, or \code{'kruskal.test'}
 #' @param latex output the table using \code{xtable::xtable}
 #' @param latex_floating use floating environment for
 #' latex printing (default = TRUE)
@@ -436,7 +469,8 @@ univ_quant <- function(x,
 biv_quant <- function(x, y,
                       na.rm = FALSE,
                       add_all = TRUE,
-                      latex = FALSE,
+                      test = c('none', 'anova', 'kruskal.test'),
+                      latex = TRUE,
                       latex_floating = TRUE,
                       latex_placement = 'ht',
                       label = NULL,
@@ -447,7 +481,8 @@ biv_quant <- function(x, y,
     xname <- gsub('^.+\\$', '', deparse(substitute(x)))
     yname <- gsub('^.+\\$', '', deparse(substitute(y)))
     varnames <- strtrim(paste(xname, yname, sep = '_'), 31)
-
+    test <- match.arg(test)
+    
     if (is.null(label))
         label <- ''
     if (is.null(caption))
@@ -466,9 +501,31 @@ biv_quant <- function(x, y,
                    )
     rval <- do.call(rbind, rval)
 
+    ## test handling
+    if (test %in% c('anova', 'kruskal.test')){
+        db <- data.frame(x = x, y = factor(y))
+        if ('anova' == test){
+            test <- stats::anova(stats::lm(x ~ y, data = db))
+            test_name <- 'Anova'
+            test_p <- lbmisc::pretty_pval((test$`Pr(>F)`)[1])
+        } else if ('kruskal.test' == test){
+            test <- stats::kruskal.test(x ~ y, data = db)
+            test_name <- 'Kruskal-Wallis'
+            test_p <- lbmisc::pretty_pval(test$p.value)
+        } else
+            stop('Something strange happened in testing')
+        
+        test_string <- sprintf('%s test p-value: %s', test_name, test_p)
+        test_df <- data.frame('Test' = test_name, 'p-value' = test_p)
+        caption <- paste0(caption, ' (', test_string, ')')
+    } else {
+        test_df <- NULL
+    }
+    
     ## Workbook handling
     if (methods::is(wb, "Workbook")){
         xlsx_table(rval,
+                   test_df, # test
                    wb,
                    sheets,
                    label,
@@ -489,7 +546,9 @@ biv_quant <- function(x, y,
                              table.placement = latex_placement)
         invisible(rval)
     } else {
-        return(rval)
+        print(rval)
+        message('\n', caption, '\n')
+        invisible(rval)
     }
 }
 
@@ -505,7 +564,7 @@ biv_quant <- function(x, y,
 #' @param sheets optional sheet names (same length as the number of
 #'     tables)
 #' @export
-univ_mr <- function(x, latex = FALSE, label = NULL, caption = NULL,
+univ_mr <- function(x, latex = TRUE, label = NULL, caption = NULL,
                     wb = NULL, sheets = NULL)
 {
     if (!is.data.frame(x))
@@ -532,6 +591,7 @@ univ_mr <- function(x, latex = FALSE, label = NULL, caption = NULL,
     ## Workbook handling
     if (methods::is(wb, "Workbook")){
         xlsx_table(rval,
+                   NULL, # table
                    wb,
                    sheets,
                    label,
