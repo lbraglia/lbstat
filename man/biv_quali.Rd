@@ -5,9 +5,10 @@
 \title{Bivariate table for categorical data.}
 \usage{
 biv_quali(x = NULL, y = NULL, totals = TRUE, useNA = "ifany",
-  NA_string = "NA", freq_sorting = c(NA, "desc", "asc"), test = TRUE,
-  latex = TRUE, latex_floating = TRUE, latex_placement = "ht",
-  label = NULL, caption = NULL, wb = NULL, sheets = NULL)
+  NA_string = "NA", freq_sorting = c(NA, "desc", "asc"), test = c("auto",
+  "none", "fisher", "chisq"), test_params = list(), latex = TRUE,
+  latex_floating = TRUE, latex_placement = "ht", label = NULL,
+  caption = NULL, wb = NULL, sheets = NULL)
 }
 \arguments{
 \item{x}{row variable: a discrete quantitative variable, a
@@ -28,6 +29,9 @@ based sorting) "\code{desc}" (descending) or "\code{asc}"
 
 \item{test}{if \code{TRUE} (default) fisher or chi square test will
 be performed (using fisher_needed to decide which one)}
+
+\item{test_params}{a list of parameters to be passed to the test
+performing function}
 
 \item{latex}{output the table using \code{xtable::xtable}}
 

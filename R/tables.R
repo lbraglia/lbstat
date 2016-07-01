@@ -239,6 +239,8 @@ univ_quali_latex_printer <- function(y,
 #'     (ascending). Sorting based on row totals.
 #' @param test if \code{TRUE} (default) fisher or chi square test will
 #'     be performed (using fisher_needed to decide which one)
+#' @param test_params a list of parameters to be passed to the test
+#'     performing function
 #' @param latex output the table using \code{xtable::xtable}
 #' @param latex_floating use floating environment for latex printing
 #'     (default = TRUE)
@@ -259,7 +261,8 @@ biv_quali <- function(x = NULL,
                       NA_string = 'NA',
                       ## round_digits = 3,
                       freq_sorting = c(NA, 'desc', 'asc'),
-                      test = TRUE,
+                      test = c('auto', 'none', 'fisher', 'chisq'),
+                      test_params = list(),
                       latex = TRUE,
                       latex_floating = TRUE,
                       latex_placement = 'ht',
@@ -271,7 +274,7 @@ biv_quali <- function(x = NULL,
     xname <- gsub('^.+\\$', '', deparse(substitute(x)))
     yname <- gsub('^.+\\$', '', deparse(substitute(y)))
     varnames <- strtrim(paste(xname, yname, sep = '_'), 31)
-
+    
     if (is.null(label))
         label <- ''
     if (is.null(caption))
@@ -282,6 +285,7 @@ biv_quali <- function(x = NULL,
     freq_sorting <- match.arg(freq_sorting)
     abs_freq <- table(x, y, useNA = useNA)
     row_sums <- rowSums(abs_freq)
+    test <- match.arg(test)
 
     if( is.na(freq_sorting) ) {
         ## do nothing
@@ -322,18 +326,34 @@ biv_quali <- function(x = NULL,
     colnames(rval)[is.na(colnames(rval))] <- NA_string 
 
     ## test handling
-    if (test){
-        if (fisher_needed(x = x, y = y)){
-            test <- stats::fisher.test(x = x, y = y)
+    if (test %in% c('auto', 'fisher', 'chisq')){
+        ## handle auto
+        if ('auto' == test)
+            test <- if (fisher_needed(x = x, y = y)) 'fisher' else 'chisq'
+      
+        ## handle fisher or chisq
+        if ('fisher' == test){
+            test_fun <- stats::fisher.test
             test_name <- 'Fisher'
-        } else {
-            test <- stats::chisq.test(x = x, y = y)
+        } else if ('chisq' == test) {
+            test_fun <- stats::chisq.test
             test_name <- 'Chi square'
-         }
+        } else
+            stop('At this point test should be fisher or chisq ...')
+
+        ## add parameters
+        test <- if (length(test_params) > 0L)
+                    do.call(test_fun, c(list(x = x, y = y), test_params))
+                else
+                    do.call(test_fun, list(x = x, y = y))
+        
+        ## evaluate test and extract useful things
         test_p <- lbmisc::pretty_pval(test$p.value)
         test_string <- sprintf('%s test p-value: %s', test_name, test_p)
         test_df <- data.frame('Test' = test_name, 'p-value' = test_p)
         caption <- paste0(caption, ' (', test_string, ')')
+    } else {
+        test_df <- NULL
     }
     
     ## Workbook handling
