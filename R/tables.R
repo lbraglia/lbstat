@@ -14,7 +14,8 @@
 #' with(airquality, Table(Month, Day))
 #' @export
 Table <- function(..., useNA = 'ifany', f = list('Sum' = sum),
-                  margin = NULL, quiet = TRUE){
+                  margin = NULL, quiet = TRUE)
+{
     tab <- base::table(useNA = useNA, ...)
     if (is.null(margin))
         margin <- seq_along(dim(tab))
@@ -24,7 +25,8 @@ Table <- function(..., useNA = 'ifany', f = list('Sum' = sum),
 ##
 ## helper for exporting tables ... very raw for now
 ##
-xlsx_table <- function(tab, test_df, wb, sheet, label, caption, varname) {
+xlsx_table <- function(tab, test_df, wb, sheet, label, caption, varname)
+{
 
     if (sheet == '')
         sheet <- varname
@@ -49,8 +51,6 @@ xlsx_table <- function(tab, test_df, wb, sheet, label, caption, varname) {
                             rowNames = FALSE, startRow = start_row)
     }
 }
-
-
 
 #' Univariate table for categorical data.
 #' 
@@ -163,8 +163,7 @@ univ_quali_worker <- function(y,
                               totals,
                               useNA,
                               NA_string,
-                              freq_sorting
-                              )
+                              freq_sorting)
 {
 
     abs_freq <- table(y, useNA = useNA)
@@ -195,7 +194,6 @@ univ_quali_worker <- function(y,
     rownames(rval)[is.na(rownames(rval))] <- NA_string 
     
     return(rval)
-
 }
 
 
@@ -204,8 +202,7 @@ univ_quali_latex_printer <- function(y,
                                      caption,
                                      varname,
                                      latex_floating,
-                                     latex_placement
-                                     )
+                                     latex_placement)
 {
 
     if (label == '')
@@ -221,7 +218,6 @@ univ_quali_latex_printer <- function(y,
     xtable::print.xtable(xt,
                          floating = latex_floating,
                          table.placement = latex_placement)
-
 }
 
 
