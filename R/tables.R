@@ -402,8 +402,13 @@ biv_quali <- function(x = NULL,
 
     ## output
     if (latex){
-        ## alternate 0,2 for number of columns/2
-        digits <- rep(c(0,2), ncol(rval)/2)
+        if (perc) {
+            ## alternate 0,2 for number of columns/2
+            digits <- rep(c(0,2), ncol(rval)/2)
+        } else {
+            ## no percentages, all integers
+            digits <- rep(0L, ncol(rval))
+        }
         xt <- xtable::xtable(rval,
                              ## align = 'todo',
                              digits = c(0, digits),
