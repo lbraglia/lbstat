@@ -185,8 +185,8 @@ univ_quali_worker <- function(y,
     colnames(rval) <- c('n', '%', 'cum. %')
 
     if(totals) {
-        ## row totals
-        Sum <- c(colSums(rval)[1:2], NA)
+        ## row totals (only for N)
+        Sum <- c(colSums(rval)[1], rep(NA, 2))
         rval <- rbind(rval, Sum)
     }
 
