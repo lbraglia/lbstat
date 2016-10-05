@@ -178,7 +178,12 @@ univ_quali_worker <- function(y,
         abs_freq <- sort(abs_freq)
     }   ## otherwise, do nothing
 
+    ## rel_freq: rm NA from percentage count
     rel_freq <- prop.table(abs_freq) * 100
+    rel_freq[is.na(names(abs_freq))] <- NA
+    rel_freq <- (rel_freq / sum(rel_freq, na.rm = TRUE))*100
+
+    ## cum_freq
     cum_freq <- cumsum(rel_freq)
     rval <- cbind(abs_freq, rel_freq, cum_freq)
     ## colnames(rval) <- c('Abs', 'Rel', 'Cum')
