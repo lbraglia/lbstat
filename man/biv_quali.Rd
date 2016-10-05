@@ -5,10 +5,11 @@
 \title{Bivariate table for categorical data.}
 \usage{
 biv_quali(x = NULL, y = NULL, totals = TRUE, useNA = "ifany",
-  NA_string = "NA", freq_sorting = c(NA, "desc", "asc"), test = c("auto",
-  "none", "fisher", "chisq"), test_params = list(), latex = TRUE,
-  latex_floating = TRUE, latex_placement = "ht", label = NULL,
-  caption = NULL, wb = NULL, sheets = NULL)
+  perc = TRUE, exclude_NA_perc = TRUE, NA_string = "NA",
+  freq_sorting = c(NA, "desc", "asc"), test = c("auto", "none", "fisher",
+  "chisq"), test_params = list(), latex = TRUE, latex_floating = TRUE,
+  latex_placement = "ht", label = NULL, caption = NULL, wb = NULL,
+  sheets = NULL)
 }
 \arguments{
 \item{x}{row variable: a discrete quantitative variable, a
@@ -21,14 +22,19 @@ character or a factor}
 
 \item{useNA}{print NA?}
 
+\item{perc}{print column percentage (default = TRUE)}
+
+\item{exclude_NA_perc}{remove NA from percentages (default = TRUE)}
+
 \item{NA_string}{character used for NA's columns title}
 
 \item{freq_sorting}{freq based sorting: can be \code{NA} (no freq
 based sorting) "\code{desc}" (descending) or "\code{asc}"
 (ascending). Sorting based on row totals.}
 
-\item{test}{if \code{TRUE} (default) fisher or chi square test will
-be performed (using fisher_needed to decide which one)}
+\item{test}{one of 'auto', 'none', 'fisher', 'chi': if \code{auto}
+(default) fisher or chi square test will be performed (using
+\code{fisher_needed} to decide which one)}
 
 \item{test_params}{a list of parameters to be passed to the test
 performing function}
@@ -54,6 +60,11 @@ tables)}
 Bivariate table for categorical data.
 }
 \examples{
-with(airquality, biv_quali(x = (OzHi = Ozone > 80), y = Month))
+x <- airquality$Ozone > 80
+y <- airquality$Month 
+biv_quali(x = x, y = y, latex = FALSE, test = 'none')
+biv_quali(x = x, y = y, latex = FALSE, test = 'none',
+          exclude_NA_perc = FALSE)
+biv_quali(x = x, y = y, latex = FALSE, test = 'none', perc = FALSE )
 }
 

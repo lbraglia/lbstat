@@ -229,12 +229,15 @@ univ_quali_latex_printer <- function(y,
 #'     character or a factor
 #' @param totals print totals?
 #' @param useNA print NA?
+#' @param perc print column percentage (default = TRUE)
+#' @param exclude_NA_perc remove NA from percentages (default = TRUE)
 #' @param NA_string character used for NA's columns title
 #' @param freq_sorting freq based sorting: can be \code{NA} (no freq
 #'     based sorting) "\code{desc}" (descending) or "\code{asc}"
 #'     (ascending). Sorting based on row totals.
-#' @param test if \code{TRUE} (default) fisher or chi square test will
-#'     be performed (using fisher_needed to decide which one)
+#' @param test one of 'auto', 'none', 'fisher', 'chi': if \code{auto}
+#'     (default) fisher or chi square test will be performed (using
+#'     \code{fisher_needed} to decide which one)
 #' @param test_params a list of parameters to be passed to the test
 #'     performing function
 #' @param latex output the table using \code{xtable::xtable}
@@ -248,12 +251,19 @@ univ_quali_latex_printer <- function(y,
 #' @param sheets optional sheet names (same length as the number of
 #'     tables)
 #' @examples
-#' with(airquality, biv_quali(x = (OzHi = Ozone > 80), y = Month))
+#' x <- airquality$Ozone > 80
+#' y <- airquality$Month 
+#' biv_quali(x = x, y = y, latex = FALSE, test = 'none')
+#' biv_quali(x = x, y = y, latex = FALSE, test = 'none',
+#'           exclude_NA_perc = FALSE)
+#' biv_quali(x = x, y = y, latex = FALSE, test = 'none', perc = FALSE )
 #' @export
 biv_quali <- function(x = NULL,
                       y = NULL,
                       totals = TRUE,
                       useNA = 'ifany',
+                      perc = TRUE,
+                      exclude_NA_perc = TRUE,
                       NA_string = 'NA',
                       ## round_digits = 3,
                       freq_sorting = c(NA, 'desc', 'asc'),
@@ -293,8 +303,16 @@ biv_quali <- function(x = NULL,
         abs_freq <- abs_freq[order(row_sums), ]
     }   ## otherwise, do nothing
 
-    ## column percentages
+    ## column percentages 
     rel_freq <- prop.table(abs_freq, margin = 2) * 100
+    ## rm row NA percentage and back percentages to 100
+    if (exclude_NA_perc){
+        na_row <- is.na(rownames(rel_freq))
+        rel_freq[na_row, ] <- NA
+        rel_freq <- apply(rel_freq, 2,
+                          function(x) 100 * x/sum(x, na.rm = TRUE))
+    }
+
     colnames(rel_freq) <- rep('%', ncol(rel_freq))
 
     ## cbind together
@@ -310,13 +328,27 @@ biv_quali <- function(x = NULL,
         ## rows totals
         row_sums <- rowSums(abs_freq)
         col_tot_perc <- (row_sums / sum(row_sums)) * 100
+        ## exclude NA perc
+        if (exclude_NA_perc){
+            col_tot_perc[na_row] <- NA
+            col_tot_perc <- 100 *
+                (col_tot_perc / sum(col_tot_perc, na.rm = TRUE))
+        }
         rval <- cbind(rval, 'Tot' = row_sums, '%' = col_tot_perc)
 
         ## columns totals
         col_sums <- colSums(rval)
+        ## put NA to percentage sums (100%) which is obvious: odd columns
+        col_sums[seq(from = 2, to = length(col_sums), by = 2)] <- NA
         rval <- rbind(rval, 'Tot' = col_sums)
     }
 
+    ## print percentages?
+    if (! perc){
+        perc_cols <- seq(from = 2, to = ncol(rval), by = 2)
+        rval <- rval[, -perc_cols]
+    }
+    
     ## NA label handling
     rownames(rval)[is.na(rownames(rval))] <- NA_string 
     colnames(rval)[is.na(colnames(rval))] <- NA_string 
