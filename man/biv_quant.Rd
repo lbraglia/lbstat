@@ -5,9 +5,8 @@
 \title{Bivariate table for a main quantitative vector}
 \usage{
 biv_quant(x, y, na.rm = FALSE, add_all = TRUE, test = c("none", "anova",
-  "kruskal.test"), latex = TRUE, latex_floating = TRUE,
-  latex_placement = "ht", label = NULL, caption = NULL, wb = NULL,
-  sheets = NULL)
+  "kruskal.test"), latex = TRUE, latex_placement = "ht", label = NULL,
+  caption = NULL, wb = NULL, sheets = NULL)
 }
 \arguments{
 \item{x}{a quantitative variable}
@@ -21,9 +20,6 @@ biv_quant(x, y, na.rm = FALSE, add_all = TRUE, test = c("none", "anova",
 \item{test}{one of \code{'none'}, \code{'anova'}, or \code{'kruskal.test'}}
 
 \item{latex}{output the table using \code{xtable::xtable}}
-
-\item{latex_floating}{use floating environment for
-latex printing (default = TRUE)}
 
 \item{latex_placement}{table placement for latex printing}
 

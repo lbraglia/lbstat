@@ -52,6 +52,126 @@ xlsx_table <- function(tab, test_df, wb, sheet, label, caption, varname)
     }
 }
 
+
+## -----------------------------------------------------------------------
+## UNIVARIATE STUFF
+## -----------------------------------------------------------------------
+
+
+#' Dispatcher for (qualitative/quantitative) univariate tables and
+#' statistics.
+#'
+#' Pass a data frame (to 
+#' 
+#' @param x a \code{data.frame}
+#' @param wb a WorkBook
+#' @export
+univariate_analysis <- function(x, wb = NULL){
+    stopifnot(is.data.frame(x))
+    zero_ones <- unlist(lapply(x, function(y) all(y %in% c(NA, 0, 1))))
+    numerics  <- unlist(lapply(x, is.numeric)) & (! zero_ones)
+    factors   <- unlist(lapply(x, is.factor))
+    ignored   <- ! (zero_ones | numerics | factors) 
+    if (any(ignored))
+        message('Ignored vars:\n', paste(names(x)[ignored], collapse=", "))
+
+    if (any(zero_ones)) {
+        zo <- x[, zero_ones, drop = FALSE]
+        univ_perc(zo, caption = 'Percentuali', wb = wb)
+    }
+    if (any(numerics)){
+        nums <- x[, numerics, drop = FALSE]
+        univ_quant(nums, caption = 'Variabili quantitative', wb = wb)
+    }
+    if (any(factors)){
+        categs <- x[, factors, drop = FALSE]
+        univ_quali(categs, wb = wb)
+    }
+    invisible(NULL)
+}
+
+
+
+#' Univariate table for quantitative data.
+#' 
+#' @param x a quantitative variable, a data.frame or a list
+#' @param latex output the table using \code{xtable::xtable}
+#' @param latex_placement table placement for latex printing
+#' @param label latex label
+#' @param caption latex caption
+#' @param wb an openxlsx Workbook; if not NULL the table will be saved
+#'     in the workbook too, aside printing
+#' @param sheets optional sheet names (same length as the number of tables)
+#' @examples
+#'    univ_quant(x = airquality$Ozone)
+#'    univ_quant(x = airquality[, c('Ozone')])
+#'    univ_quant(x = airquality[, c('Ozone', 'Temp')])
+#'    univ_quant(list('a' = 1:10, 'b' = 2:20))
+#' @export
+univ_quant <- function(x,
+                       latex = TRUE,
+                       latex_placement = 'ht',
+                       label = NULL,
+                       caption = NULL,
+                       wb = NULL,
+                       sheets = NULL)
+{
+    if (is.null(label))
+        label <- ''
+    if (is.null(caption))
+        caption <- ''
+    if (is.null(sheets))
+        sheets <- ''
+
+    if (is.data.frame(x)){
+        x <- as.list(x)
+    } else if (is.list(x)){
+        # do nothing
+    } else {
+        xname <- deparse(substitute(x))
+        xname <-  gsub('^.+\\$', '', xname)
+        x <- list(x)
+        names(x) <- xname
+    }
+
+    rval <- lapply(x, desc)
+    rval <- do.call(rbind, rval)
+
+    varnames <- strtrim(paste(rownames(rval), collapse = '_'), 31)
+        
+    ## Workbook handling
+    if (methods::is(wb, "Workbook")){
+        xlsx_table(rval,
+                   NULL, # test
+                   wb,
+                   sheets,
+                   label,
+                   caption,
+                   varnames)
+    }
+    
+    ## rval <- desc(x)
+    if (latex) {
+        ## 0 for n and NA, 2 for the others
+        digits <- (!(colnames(rval) %in% c('n', 'NA')))*2
+        xt <- xtable::xtable(rval,
+                             ## align = 'c',
+                             digits = c(0, digits),
+                             label = label,
+                             caption = caption)
+        xtable::print.xtable(xt,
+                             table.placement = latex_placement
+                             )
+        invisible(rval)
+    } else {
+        return(rval)
+    }
+}
+
+
+
+
+
 #' Univariate table for categorical data.
 #' 
 #' @param x a discrete quantitative variable, a character or a factor
@@ -62,8 +182,6 @@ xlsx_table <- function(tab, test_df, wb, sheet, label, caption, varname)
 #'     based sorting) "\code{desc}" (descending) or "\code{asc}"
 #'     (ascending).
 #' @param latex output the table using \code{xtable::xtable}
-#' @param latex_floating use floating environment for
-#' latex printing (default = TRUE)
 #' @param latex_placement table placement for latex printing
 #' @param label latex label
 #' @param caption latex caption
@@ -88,7 +206,6 @@ univ_quali <- function(x = NULL,
                        NA_string = 'NA',
                        freq_sorting = c(NA, 'desc', 'asc'),
                        latex = TRUE,
-                       latex_floating = TRUE,
                        latex_placement = 'ht',
                        label = NULL,
                        caption = NULL,
@@ -144,7 +261,6 @@ univ_quali <- function(x = NULL,
                as.list(label),
                as.list(caption),
                as.list(names(rval)),
-               as.list(latex_floating),
                as.list(latex_placement)
                )
         invisible(rval)
@@ -206,7 +322,6 @@ univ_quali_latex_printer <- function(y,
                                      label,
                                      caption,
                                      varname,
-                                     latex_floating,
                                      latex_placement)
 {
 
@@ -221,9 +336,85 @@ univ_quali_latex_printer <- function(y,
                          label = label,
                          caption = caption)
     xtable::print.xtable(xt,
-                         floating = latex_floating,
                          table.placement = latex_placement)
 }
+
+
+#' Percentages table for 0-1 variables
+#'
+#' Previously called \code{univ_mr} (for multiple responses) the function make
+#' descriptive statistics (n, percentages) for 0-1 variables
+#' 
+#' @param x a (chunk of) data.frame encoding multiple responses (aka
+#'     all composed of 0-1 variables)
+#' @param sort_freq sort by frequencies (descending)?
+#' @param latex output the table using \code{xtable::xtable}
+#' @param label latex label
+#' @param caption latex caption
+#' @param wb an openxlsx Workbook; if not NULL the table will be saved
+#'     in the workbook too, aside printing
+#' @param sheets optional sheet names (same length as the number of
+#'     tables)
+#' @export
+univ_perc <- function(x,
+                      sort_freq = FALSE,
+                      latex = TRUE,
+                      label = NULL,
+                      caption = NULL,
+                      wb = NULL,
+                      sheets = NULL)
+{
+    if (!is.data.frame(x))
+        stop('x must be a data.frame')
+    if (! all(unlist((lapply(x, function(x) all(x  %in% c(0, 1, NA)))))))
+        stop('x must only include 0, 1, NA')
+
+    if (is.null(label))
+        label <- ''
+    if (is.null(caption))
+        caption <- ''
+    if (is.null(sheets))
+        sheets <- ''
+
+    not_NA <- unlist(lapply(x, function(x) sum(!is.na(x))))
+    s <- colSums(x, na.rm = TRUE)
+    rval <- cbind('n' = s, '%' = round((s/not_NA)*100, 2))
+    rownames(rval) <- paste0(rownames(rval), ' (N = ', not_NA, ')')
+    rownames(rval) <- gsub('_', ' ', rownames(rval))
+    if (sort_freq){
+        rval <- rval[order(- rval[,1]), ]
+    }
+    
+    varnames <- strtrim(paste(rownames(rval), collapse = '_'), 31)
+        
+    ## Workbook handling
+    if (methods::is(wb, "Workbook")){
+        xlsx_table(rval,
+                   NULL, # table
+                   wb,
+                   sheets,
+                   label,
+                   caption,
+                   varnames)
+    }
+
+    if (latex) {
+        xtab <- xtable::xtable(rval,
+                               ## align = 'cc',
+                               digits = c(0, 0, 2),
+                               caption = caption,
+                               label = label)
+        xtable::print.xtable(xtab)
+        invisible(rval)
+    } else {
+        return(rval)
+    }
+}
+
+
+## -----------------------------------------------------------------------
+## BIVARIATE STUFF
+## -----------------------------------------------------------------------
 
 
 #' Bivariate table for categorical data.
@@ -246,8 +437,6 @@ univ_quali_latex_printer <- function(y,
 #' @param test_params a list of parameters to be passed to the test
 #'     performing function
 #' @param latex output the table using \code{xtable::xtable}
-#' @param latex_floating use floating environment for latex printing
-#'     (default = TRUE)
 #' @param latex_placement table placement for latex printing
 #' @param label latex label
 #' @param caption latex caption
@@ -275,7 +464,6 @@ biv_quali <- function(x = NULL,
                       test = c('auto', 'none', 'fisher', 'chisq'),
                       test_params = list(),
                       latex = TRUE,
-                      latex_floating = TRUE,
                       latex_placement = 'ht',
                       label = NULL,
                       caption = NULL,
@@ -414,7 +602,6 @@ biv_quali <- function(x = NULL,
                              digits = c(0, digits),
                              label = label, caption = caption)
         xtable::print.xtable(xt,
-                             floating = latex_floating,
                              table.placement = latex_placement)
         invisible(rval)
     } else {
@@ -426,85 +613,6 @@ biv_quali <- function(x = NULL,
 
 }
 
-#' Univariate table for quantitative data.
-#' 
-#' @param x a quantitative variable, a data.frame or a list
-#' @param latex output the table using \code{xtable::xtable}
-#' @param latex_floating use floating environment for
-#' latex printing (default = TRUE)
-#' @param latex_placement table placement for latex printing
-#' @param label latex label
-#' @param caption latex caption
-#' @param wb an openxlsx Workbook; if not NULL the table will be saved
-#'     in the workbook too, aside printing
-#' @param sheets optional sheet names (same length as the number of tables)
-#' @examples
-#'    univ_quant(x = airquality$Ozone)
-#'    univ_quant(x = airquality[, c('Ozone')])
-#'    univ_quant(x = airquality[, c('Ozone', 'Temp')])
-#'    univ_quant(list('a' = 1:10, 'b' = 2:20))
-#' @export
-univ_quant <- function(x,
-                       latex = TRUE,
-                       latex_floating = TRUE,
-                       latex_placement = 'ht',
-                       label = NULL,
-                       caption = NULL,
-                       wb = NULL,
-                       sheets = NULL)
-{
-    if (is.null(label))
-        label <- ''
-    if (is.null(caption))
-        caption <- ''
-    if (is.null(sheets))
-        sheets <- ''
-
-    if (is.data.frame(x)){
-        x <- as.list(x)
-    } else if (is.list(x)){
-        # do nothing
-    } else {
-        xname <- deparse(substitute(x))
-        xname <-  gsub('^.+\\$', '', xname)
-        x <- list(x)
-        names(x) <- xname
-    }
-
-    rval <- lapply(x, desc)
-    rval <- do.call(rbind, rval)
-
-    varnames <- strtrim(paste(rownames(rval), collapse = '_'), 31)
-        
-    ## Workbook handling
-    if (methods::is(wb, "Workbook")){
-        xlsx_table(rval,
-                   NULL, # test
-                   wb,
-                   sheets,
-                   label,
-                   caption,
-                   varnames)
-    }
-    
-    ## rval <- desc(x)
-    if (latex) {
-        ## 0 for n and NA, 2 for the others
-        digits <- (!(colnames(rval) %in% c('n', 'NA')))*2
-        xt <- xtable::xtable(rval,
-                             ## align = 'c',
-                             digits = c(0, digits),
-                             label = label,
-                             caption = caption)
-        xtable::print.xtable(xt,
-                             floating = latex_floating,
-                             table.placement = latex_placement
-                             )
-        invisible(rval)
-    } else {
-        return(rval)
-    }
-}
 
 #' Bivariate table for a main quantitative vector 
 #' 
@@ -514,8 +622,6 @@ univ_quant <- function(x,
 #' @param add_all add "All" row
 #' @param test one of \code{'none'}, \code{'anova'}, or \code{'kruskal.test'}
 #' @param latex output the table using \code{xtable::xtable}
-#' @param latex_floating use floating environment for
-#' latex printing (default = TRUE)
 #' @param latex_placement table placement for latex printing
 #' @param label latex label
 #' @param caption latex caption
@@ -529,7 +635,6 @@ biv_quant <- function(x, y,
                       add_all = TRUE,
                       test = c('none', 'anova', 'kruskal.test'),
                       latex = TRUE,
-                      latex_floating = TRUE,
                       latex_placement = 'ht',
                       label = NULL,
                       caption = NULL,
@@ -600,7 +705,6 @@ biv_quant <- function(x, y,
                                caption = caption,
                                label = label)
         xtable::print.xtable(xtab,
-                             floating = latex_floating,
                              table.placement = latex_placement)
         invisible(rval)
     } else {
@@ -610,62 +714,3 @@ biv_quant <- function(x, y,
     }
 }
 
-#' Percentages table for multiple categorical responses
-#' 
-#' @param x a (chunk of) data.frame encoding multiple responses (aka
-#'     all composed of 0-1 variables)
-#' @param latex output the table using \code{xtable::xtable}
-#' @param label latex label
-#' @param caption latex caption
-#' @param wb an openxlsx Workbook; if not NULL the table will be saved
-#'     in the workbook too, aside printing
-#' @param sheets optional sheet names (same length as the number of
-#'     tables)
-#' @export
-univ_mr <- function(x, latex = TRUE, label = NULL, caption = NULL,
-                    wb = NULL, sheets = NULL)
-{
-    if (!is.data.frame(x))
-        stop('x must be a data.frame')
-    if (all(x  %in% c(0, 1, NA)))
-        stop('x must only include 0, 1, NA')
-
-    if (is.null(label))
-        label <- ''
-    if (is.null(caption))
-        caption <- ''
-    if (is.null(sheets))
-        sheets <- ''
-
-    not_NA <- unlist(lapply(x, function(x) sum(!is.na(x))))
-    s <- colSums(x, na.rm = TRUE)
-    rval <- cbind('n' = s, '%' = round((s/not_NA)*100, 2))
-    rownames(rval) <- paste0(rownames(rval), ' (N = ', not_NA, ')')
-    rownames(rval) <- gsub('_', ' ', rownames(rval))
-    rval <- rval[order(- rval[,1]), ]
-
-    varnames <- strtrim(paste(rownames(rval), collapse = '_'), 31)
-        
-    ## Workbook handling
-    if (methods::is(wb, "Workbook")){
-        xlsx_table(rval,
-                   NULL, # table
-                   wb,
-                   sheets,
-                   label,
-                   caption,
-                   varnames)
-    }
-
-    if (latex) {
-        xtab <- xtable::xtable(rval,
-                               ## align = 'cc',
-                               digits = c(0, 0, 2),
-                               caption = caption,
-                               label = label)
-        xtable::print.xtable(xtab)
-        invisible(rval)
-    } else {
-        return(rval)
-    }
-}
