@@ -61,8 +61,6 @@ xlsx_table <- function(tab, test_df, wb, sheet, label, caption, varname)
 #' Dispatcher for (qualitative/quantitative) univariate tables and
 #' statistics.
 #'
-#' Pass a data frame (to 
-#' 
 #' @param x a \code{data.frame}
 #' @param wb a WorkBook
 #' @export
@@ -415,6 +413,47 @@ univ_perc <- function(x,
 ## -----------------------------------------------------------------------
 ## BIVARIATE STUFF
 ## -----------------------------------------------------------------------
+
+#' Dispatcher for (qualitative/quantitative) bivariate tables and
+#' statistics.
+#'
+#' @param x a \code{data.frame}
+#' @param group a data.frame of 1 column
+#' @param analysis_name label prefix
+#' @param wb a WorkBook
+#' @export
+bivariate_analysis <- function(x, group, analysis_name, wb){
+    worker <- function(x,   # analyzed var
+                       g,   # grouping var
+                       xn,  # variable name
+                       gn,  # grouping var name
+                       analysis_name # overall name, for sheet
+                       )
+    {
+        ## print(class(x))
+        ## print(class(g))
+        ## print(xn)
+        ## print(gn)
+        ## print(analysis_name)
+        sheet_name <- paste(analysis_name, gn, xn, sep = '_')
+        label <- paste('tab', sheet_name, sep = ':')
+        f <- if (is.factor(x)) 
+                 biv_quali
+             else if (is.numeric(x))
+                 biv_quant
+             else 
+                 stop(sprintf('%s: tipo variabile non contemplato', xn))
+        f(x = x, y = g, wb = wb, sheets = sheet_name, label = label,
+          caption = if (!is.null(comment(x))) comment(x) else '')
+    }
+    invisible(Map(worker, 
+                  x, 
+                  list(group[, 1]), 
+                  as.list(names(x)),
+                  as.list(names(group)),
+                  list(analysis_name)))
+}
+
 
 
 #' Bivariate table for categorical data.

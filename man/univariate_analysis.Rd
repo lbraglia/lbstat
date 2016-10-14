@@ -13,6 +13,7 @@ univariate_analysis(x, wb = NULL)
 \item{wb}{a WorkBook}
 }
 \description{
-Pass a data frame (to
+Dispatcher for (qualitative/quantitative) univariate tables and
+statistics.
 }
 
