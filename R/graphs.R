@@ -17,9 +17,16 @@ quant_density <- function(x, na.rm = TRUE, ...){
     filter <- function(x)is.numeric(x) && (!all(x %in% c(NA, 0, 1)))
     x <- Filter(f = filter, x = x)
     var_names <- if (is.character(names(x))) names(x) else ''
-    plot_fun <- function(data, varname) 
+    plot_fun <- function(data, varname){
         graphics::plot(stats::density(x = data, na.rm = na.rm, ...),
                        main = varname)
+        graphics::abline(v = mean(x = data, na.rm = na.rm),
+                         col = lbmisc::col2hex('red', alpha = 0.5),
+                         lty = 'dotted')
+        graphics::abline(v = stats::median(x = data, na.rm = na.rm),
+                         col = lbmisc::col2hex('blue', alpha = 0.5),
+                         lty = 'dashed')
+    }
     Map(plot_fun, x, var_names)
     invisible(NULL)
 }

@@ -18,4 +18,8 @@ quant_density(x, na.rm = TRUE, ...)
 Plot kernel density estimates for not 0-1 only quantitative
 variable of a list/data.frame.
 }
+\examples{
+par(mfrow = c(2, 3))
+quant_density(airquality)
+}
 

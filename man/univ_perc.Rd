@@ -5,7 +5,7 @@
 \title{Percentages table for 0-1 variables}
 \usage{
 univ_perc(x, sort_freq = FALSE, latex = TRUE, label = NULL,
-  caption = NULL, wb = NULL, sheets = NULL)
+  caption = NULL, use_comments = TRUE, wb = NULL, sheets = NULL)
 }
 \arguments{
 \item{x}{a (chunk of) data.frame encoding multiple responses (aka
@@ -18,6 +18,8 @@ all composed of 0-1 variables)}
 \item{label}{latex label}
 
 \item{caption}{latex caption}
+
+\item{use_comments}{use comments for row (variable) names, if available}
 
 \item{wb}{an openxlsx Workbook; if not NULL the table will be saved
 in the workbook too, aside printing}

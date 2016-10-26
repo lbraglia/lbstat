@@ -16,4 +16,11 @@ univariate_analysis(x, wb = NULL)
 Dispatcher for (qualitative/quantitative) univariate tables and
 statistics.
 }
+\examples{
+
+wb = openxlsx::createWorkbook()
+univariate_analysis(airquality, wb = wb)
+lbmisc::wb_to_xlsx(wb = wb, file = '/tmp/univariate_analysis.xlsx')
+
+}
 

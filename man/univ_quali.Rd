@@ -6,8 +6,8 @@
 \usage{
 univ_quali(x = NULL, totals = TRUE, useNA = "ifany", NA_string = "NA",
   freq_sorting = c(NA, "desc", "asc"), latex = TRUE,
-  latex_placement = "ht", label = NULL, caption = NULL, wb = NULL,
-  sheets = NULL)
+  latex_placement = "ht", label = NULL, caption = NULL,
+  use_comments = TRUE, wb = NULL, sheets = NULL)
 }
 \arguments{
 \item{x}{a discrete quantitative variable, a character or a factor}
@@ -30,6 +30,9 @@ based sorting) "\code{desc}" (descending) or "\code{asc}"
 
 \item{caption}{latex caption}
 
+\item{use_comments}{use variable comments for caption if available
+(and none specified as comment=)}
+
 \item{wb}{an openxlsx Workbook; if not NULL the table will be saved
 in the workbook too, aside printing}
 
@@ -39,15 +42,19 @@ in the workbook too, aside printing}
 Univariate table for categorical data.
 }
 \examples{
- univ_quali(x = airquality$Month)
- univ_quali(x = airquality[, c('Month')])
- univ_quali(x = airquality[, c('Month', 'Day')])
- univ_quali(x = airquality[, c('Month', 'Day')], latex = TRUE)
- univ_quali(x = airquality[, c('Month', 'Day')], latex = TRUE,
-            label = c('tab:airq_month', 'tab:airq_day'),
-            caption = c('airquality month', 'airquality day')
- )
- univ_quali(list('a' = rep(LETTERS[1:5],2),
-                 'b' = rep(letters[1:5],2)))
+
+wb = openxlsx::createWorkbook()
+univ_quali(x = airquality$Month, wb = wb)
+univ_quali(x = airquality[, c('Month')], wb = wb)
+univ_quali(x = airquality[, c('Month', 'Day')], wb = wb)
+univ_quali(x = airquality[, c('Month', 'Day')], latex = TRUE, wb = wb)
+univ_quali(x = airquality[, c('Month', 'Day')], latex = TRUE,
+           label = c('tab:airq_month', 'tab:airq_day'),
+           caption = c('airquality month', 'airquality day'),
+           wb = wb)
+univ_quali(list('a' = rep(LETTERS[1:5],2), 'b' = rep(letters[1:5],2)),
+           wb = wb)
+lbmisc::wb_to_xlsx(wb = wb, file = '/tmp/univ_quali.xlsx')
+
 }
 

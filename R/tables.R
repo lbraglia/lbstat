@@ -1,50 +1,35 @@
-#' Cross tabulation and table creation
-#' 
-#' This is a wrapper around table (using \code{useNA = "ifany"} by
-#' default) and addsmargins. 
-#' 
-#' @param ... Arguments to be passed to table.
-#' @param useNA display NA counts
-#' @param f function to be used for summaries
-#' @param quiet addmargins quiet parameter
-#' @param margin addmargins margin parameter
-#' @return The function return same results of table with NA (if present) and
-#' margins.
-#' @examples
-#' with(airquality, Table(Month, Day))
-#' @export
-Table <- function(..., useNA = 'ifany', f = list('Sum' = sum),
-                  margin = NULL, quiet = TRUE)
-{
-    tab <- base::table(useNA = useNA, ...)
-    if (is.null(margin))
-        margin <- seq_along(dim(tab))
-    addmargins(tab, FUN = f, quiet = quiet, margin = margin)
-}
+## -----------------------------------------------------------------------
+## HELPER FUNCTIONS
+## -----------------------------------------------------------------------
 
 ##
 ## helper for exporting tables ... very raw for now
 ##
-xlsx_table <- function(tab, test_df, wb, sheet, label, caption, varname)
+xlsx_table <- function(tab, test_df, wb, sheet, caption, varname)
 {
 
     if (sheet == '')
         sheet <- varname
-    if (label == '')
-        label <- sprintf('tab:%s', varname)
     if (caption == '')
         caption <- gsub('_', ' ', varname)
 
-    sheet <- strtrim(sheet, 31)
+    ## find a proper sheet name (C style)
+    original_sheet <- sheet
+    attempts <- 1L
+    sheet <- make_sheetname(original_sheet, attempts)
+    while(sheet %in% openxlsx::sheets(wb)){
+        sheet <- make_sheetname(original_sheet, attempts)
+        attempts <- attempts + 1L
+    }
     
-    ## todo: use label and caption
+    ## todo: use caption
     openxlsx::addWorksheet(wb = wb, sheetName = sheet)
     openxlsx::writeData(wb = wb, sheet = sheet, x = tab,
                         rowNames = TRUE)
 
     ## test
     if (is.data.frame(test_df)){
-        tab_rows <- nrow(tab) + 1 # +1 for table header
+        tab_rows <- nrow(tab) + 1 ## +1 for table header
         spacing <- 2
         start_row <- tab_rows + spacing
         openxlsx::writeData(wb = wb, sheet = sheet, x = test_df,
@@ -52,17 +37,45 @@ xlsx_table <- function(tab, test_df, wb, sheet, label, caption, varname)
     }
 }
 
+## helper of xlsx_table: find a sensible sheetname
+make_sheetname <- function(sheet, attempt){
+    if (attempt == 1L)
+        strtrim(sheet, 31)
+    else {
+        needed_digits <- floor(log10(attempt)) + 1L
+        paste0(strtrim(sheet, 31 - needed_digits), as.character(attempt))
+    }
+}
+
+## helper function to extract comment from a dataframe, list or vector
+## and replace NULL with ''; returned vector has the same length as
+## given data.frame
+get_comments <- function(x) {
+
+    extractor <- function(y){
+        cy <- comment(y)
+        if (is.null(cy)) '' else cy
+    }
+    
+    if (is.list(x)) unlist(lapply(x, extractor)) else extractor(x)
+}
+
 
 ## -----------------------------------------------------------------------
 ## UNIVARIATE STUFF
 ## -----------------------------------------------------------------------
-
 
 #' Dispatcher for (qualitative/quantitative) univariate tables and
 #' statistics.
 #'
 #' @param x a \code{data.frame}
 #' @param wb a WorkBook
+#' @examples
+#' 
+#' wb = openxlsx::createWorkbook()
+#' univariate_analysis(airquality, wb = wb)
+#' lbmisc::wb_to_xlsx(wb = wb, file = '/tmp/univariate_analysis.xlsx')
+#' 
 #' @export
 univariate_analysis <- function(x, wb = NULL){
     stopifnot(is.data.frame(x))
@@ -71,7 +84,7 @@ univariate_analysis <- function(x, wb = NULL){
     factors   <- unlist(lapply(x, is.factor))
     ignored   <- ! (zero_ones | numerics | factors) 
     if (any(ignored))
-        message('Ignored vars:\n', paste(names(x)[ignored], collapse=", "))
+        warning('Ignored vars:\n', paste(names(x)[ignored], collapse=", "))
 
     if (any(zero_ones)) {
         zo <- x[, zero_ones, drop = FALSE]
@@ -97,20 +110,26 @@ univariate_analysis <- function(x, wb = NULL){
 #' @param latex_placement table placement for latex printing
 #' @param label latex label
 #' @param caption latex caption
+#' @param use_comments use comments for row (variable) names, if available
 #' @param wb an openxlsx Workbook; if not NULL the table will be saved
 #'     in the workbook too, aside printing
 #' @param sheets optional sheet names (same length as the number of tables)
 #' @examples
-#'    univ_quant(x = airquality$Ozone)
-#'    univ_quant(x = airquality[, c('Ozone')])
-#'    univ_quant(x = airquality[, c('Ozone', 'Temp')])
-#'    univ_quant(list('a' = 1:10, 'b' = 2:20))
+#' 
+#' wb = openxlsx::createWorkbook()
+#' univ_quant(x = airquality$Ozone, sheet = 'ozone', wb = wb)
+#' univ_quant(x = airquality[, c('Ozone')], wb = wb)
+#' univ_quant(x = airquality[, c('Ozone', 'Temp')], wb = wb)
+#' univ_quant(list('a' = 1:10, 'b' = 2:20), wb = wb)
+#' lbmisc::wb_to_xlsx(wb = wb, file = '/tmp/univ_quant.xlsx')
+#' 
 #' @export
 univ_quant <- function(x,
                        latex = TRUE,
                        latex_placement = 'ht',
                        label = NULL,
                        caption = NULL,
+                       use_comments = TRUE,
                        wb = NULL,
                        sheets = NULL)
 {
@@ -121,6 +140,8 @@ univ_quant <- function(x,
     if (is.null(sheets))
         sheets <- ''
 
+    comments <- get_comments(x)
+    
     if (is.data.frame(x)){
         x <- as.list(x)
     } else if (is.list(x)){
@@ -132,23 +153,28 @@ univ_quant <- function(x,
         names(x) <- xname
     }
 
-    rval <- lapply(x, desc)
-    rval <- do.call(rbind, rval)
+    rval <- do.call(rbind, lapply(x, desc))
 
+    if (use_comments){
+        usable <- comments %nin% ''
+        if (any(usable))
+            rownames(rval)[usable] <- comments[usable]
+    }
+    
     varnames <- strtrim(paste(rownames(rval), collapse = '_'), 31)
         
-    ## Workbook handling
+    ## excel exporting
     if (methods::is(wb, "Workbook")){
         xlsx_table(rval,
                    NULL, # test
                    wb,
                    sheets,
-                   label,
+                   ## label,
                    caption,
                    varnames)
     }
     
-    ## rval <- desc(x)
+    ## latex printing
     if (latex) {
         ## 0 for n and NA, 2 for the others
         digits <- (!(colnames(rval) %in% c('n', 'NA')))*2
@@ -167,9 +193,6 @@ univ_quant <- function(x,
 }
 
 
-
-
-
 #' Univariate table for categorical data.
 #' 
 #' @param x a discrete quantitative variable, a character or a factor
@@ -183,20 +206,26 @@ univ_quant <- function(x,
 #' @param latex_placement table placement for latex printing
 #' @param label latex label
 #' @param caption latex caption
+#' @param use_comments use variable comments for caption if available
+#'     (and none specified as comment=)
 #' @param wb an openxlsx Workbook; if not NULL the table will be saved
 #'     in the workbook too, aside printing
 #' @param sheets optional sheet names (same length as the number of tables)
 #' @examples
-#'  univ_quali(x = airquality$Month)
-#'  univ_quali(x = airquality[, c('Month')])
-#'  univ_quali(x = airquality[, c('Month', 'Day')])
-#'  univ_quali(x = airquality[, c('Month', 'Day')], latex = TRUE)
-#'  univ_quali(x = airquality[, c('Month', 'Day')], latex = TRUE,
-#'             label = c('tab:airq_month', 'tab:airq_day'),
-#'             caption = c('airquality month', 'airquality day')
-#'  )
-#'  univ_quali(list('a' = rep(LETTERS[1:5],2),
-#'                  'b' = rep(letters[1:5],2)))
+#'
+#' wb = openxlsx::createWorkbook()
+#' univ_quali(x = airquality$Month, wb = wb)
+#' univ_quali(x = airquality[, c('Month')], wb = wb)
+#' univ_quali(x = airquality[, c('Month', 'Day')], wb = wb)
+#' univ_quali(x = airquality[, c('Month', 'Day')], latex = TRUE, wb = wb)
+#' univ_quali(x = airquality[, c('Month', 'Day')], latex = TRUE,
+#'            label = c('tab:airq_month', 'tab:airq_day'),
+#'            caption = c('airquality month', 'airquality day'),
+#'            wb = wb)
+#' univ_quali(list('a' = rep(LETTERS[1:5],2), 'b' = rep(letters[1:5],2)),
+#'            wb = wb)
+#' lbmisc::wb_to_xlsx(wb = wb, file = '/tmp/univ_quali.xlsx')
+#' 
 #' @export
 univ_quali <- function(x = NULL,
                        totals = TRUE,
@@ -207,6 +236,7 @@ univ_quali <- function(x = NULL,
                        latex_placement = 'ht',
                        label = NULL,
                        caption = NULL,
+                       use_comments = TRUE,
                        wb = NULL,
                        sheets = NULL)
 {
@@ -220,6 +250,13 @@ univ_quali <- function(x = NULL,
         caption <- ''
     if (is.null(sheets))
         sheets <- ''
+
+    if (use_comments){
+        comments <- get_comments(x)
+        usable <- comments %nin% ''
+        if (any(usable)) caption[usable] <- comments[usable]
+        caption <- replace(caption, is.na(caption), '')
+    }
     
     if (is.data.frame(x)){
         x <- as.list(x)
@@ -240,19 +277,19 @@ univ_quali <- function(x = NULL,
                           freq_sorting = freq_sorting))
 
     
-    ## Workbook handling
+    ## excel exporting
     if (methods::is(wb, "Workbook")){
         mapply(xlsx_table,
                rval,
                list(NULL), # test
                list(wb),
                as.list(sheets),
-               as.list(label),
+               ## as.list(label),
                as.list(caption),
                as.list(names(rval)))
     }
 
-    ## Print and return
+    ## latex printing and return
     if (latex){
         mapply(univ_quali_latex_printer,
                rval,
@@ -325,7 +362,7 @@ univ_quali_latex_printer <- function(y,
 
     if (label == '')
         label <- sprintf('tab:%s', varname)
-    if (caption == '')
+    if (caption %in% '')
         caption <- gsub('_', ' ', varname)
     
     xt <- xtable::xtable(y,
@@ -349,6 +386,7 @@ univ_quali_latex_printer <- function(y,
 #' @param latex output the table using \code{xtable::xtable}
 #' @param label latex label
 #' @param caption latex caption
+#' @param use_comments use comments for row (variable) names, if available
 #' @param wb an openxlsx Workbook; if not NULL the table will be saved
 #'     in the workbook too, aside printing
 #' @param sheets optional sheet names (same length as the number of
@@ -359,6 +397,7 @@ univ_perc <- function(x,
                       latex = TRUE,
                       label = NULL,
                       caption = NULL,
+                      use_comments = TRUE,
                       wb = NULL,
                       sheets = NULL)
 {
@@ -377,6 +416,13 @@ univ_perc <- function(x,
     not_NA <- unlist(lapply(x, function(x) sum(!is.na(x))))
     s <- colSums(x, na.rm = TRUE)
     rval <- cbind('n' = s, '%' = round((s/not_NA)*100, 2))
+    ## substitute rownames if comment are available and we use them
+    if (use_comments){
+        comments <- get_comments(x)
+        usable <- comments %nin% ''
+        if (any(usable))
+            rownames(rval)[usable] <- comments[usable]
+    }
     rownames(rval) <- paste0(rownames(rval), ' (N = ', not_NA, ')')
     rownames(rval) <- gsub('_', ' ', rownames(rval))
     if (sort_freq){
@@ -391,7 +437,7 @@ univ_perc <- function(x,
                    NULL, # table
                    wb,
                    sheets,
-                   label,
+                   ## label,
                    caption,
                    varnames)
     }
@@ -622,7 +668,7 @@ biv_quali <- function(x = NULL,
                    test_df,
                    wb,
                    sheets,
-                   label,
+                   ## label,
                    caption,
                    varnames)
     }
@@ -730,7 +776,7 @@ biv_quant <- function(x, y,
                    test_df, # test
                    wb,
                    sheets,
-                   label,
+                   ## label,
                    caption,
                    varnames)
     }
@@ -753,3 +799,27 @@ biv_quant <- function(x, y,
     }
 }
 
+
+#' Cross tabulation and table creation
+#' 
+#' This is a wrapper around table (using \code{useNA = "ifany"} by
+#' default) and addsmargins. 
+#' 
+#' @param ... Arguments to be passed to table.
+#' @param useNA display NA counts
+#' @param f function to be used for summaries
+#' @param quiet addmargins quiet parameter
+#' @param margin addmargins margin parameter
+#' @return The function return same results of table with NA (if present) and
+#' margins.
+#' @examples
+#' with(airquality, Table(Month, Day))
+#' @export
+Table <- function(..., useNA = 'ifany', f = list('Sum' = sum),
+                  margin = NULL, quiet = TRUE)
+{
+    tab <- base::table(useNA = useNA, ...)
+    if (is.null(margin))
+        margin <- seq_along(dim(tab))
+    addmargins(tab, FUN = f, quiet = quiet, margin = margin)
+}
