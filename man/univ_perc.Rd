@@ -31,4 +31,9 @@ tables)}
 Previously called \code{univ_mr} (for multiple responses) the function make
 descriptive statistics (n, percentages) for 0-1 variables
 }
+\examples{
+set.seed(1)
+data <- as.data.frame(matrix(rbinom(100, 1, p = 0.5), ncol = 10))
+univ_perc(x = data)
+}
 

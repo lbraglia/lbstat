@@ -391,6 +391,10 @@ univ_quali_latex_printer <- function(y,
 #'     in the workbook too, aside printing
 #' @param sheets optional sheet names (same length as the number of
 #'     tables)
+#' @examples
+#' set.seed(1)
+#' data <- as.data.frame(matrix(rbinom(100, 1, p = 0.5), ncol = 10))
+#' univ_perc(x = data)
 #' @export
 univ_perc <- function(x,
                       sort_freq = FALSE,
@@ -423,7 +427,15 @@ univ_perc <- function(x,
         if (any(usable))
             rownames(rval)[usable] <- comments[usable]
     }
-    rownames(rval) <- paste0(rownames(rval), ' (N = ', not_NA, ')')
+
+    if (length(unique(not_NA)) == 1L){
+        ## tutte le variabili hanno la stessa numerosità (di non mancanti)
+        colnames(rval)[1] <- sprintf('n (N = %d)', as.integer(not_NA[1]))
+    } else {
+        ## numerosità diverse da variabile a variabile
+        rownames(rval) <- paste0(rownames(rval), ' (N = ', not_NA, ')')
+    }
+
     rownames(rval) <- gsub('_', ' ', rownames(rval))
     if (sort_freq){
         rval <- rval[order(- rval[,1]), ]
