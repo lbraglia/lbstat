@@ -54,7 +54,7 @@ univ_quali(x = airquality[, c('Month', 'Day')], latex = TRUE,
            wb = wb)
 univ_quali(list('a' = rep(LETTERS[1:5],2), 'b' = rep(letters[1:5],2)),
            wb = wb)
-lbmisc::wb_to_xlsx(wb = wb, file = '/tmp/univ_quali.xlsx')
+lbmisc::wb_to_xl(wb = wb, file = '/tmp/univ_quali.xlsx')
 
 }
 

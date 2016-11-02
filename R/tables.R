@@ -73,11 +73,11 @@ get_comments <- function(x) {
 #' @examples
 #' 
 #' wb = openxlsx::createWorkbook()
-#' univariate_analysis(airquality, wb = wb)
-#' lbmisc::wb_to_xlsx(wb = wb, file = '/tmp/univariate_analysis.xlsx')
+#' univariate_tables(airquality, wb = wb)
+#' lbmisc::wb_to_xl(wb = wb, file = '/tmp/univariate_tables.xlsx')
 #' 
 #' @export
-univariate_analysis <- function(x, wb = NULL){
+univariate_tables <- function(x, wb = NULL){
     stopifnot(is.data.frame(x))
     zero_ones <- unlist(lapply(x, function(y) all(y %in% c(NA, 0, 1))))
     numerics  <- unlist(lapply(x, is.numeric)) & (! zero_ones)
@@ -121,7 +121,7 @@ univariate_analysis <- function(x, wb = NULL){
 #' univ_quant(x = airquality[, c('Ozone')], wb = wb)
 #' univ_quant(x = airquality[, c('Ozone', 'Temp')], wb = wb)
 #' univ_quant(list('a' = 1:10, 'b' = 2:20), wb = wb)
-#' lbmisc::wb_to_xlsx(wb = wb, file = '/tmp/univ_quant.xlsx')
+#' lbmisc::wb_to_xl(wb = wb, file = '/tmp/univ_quant.xlsx')
 #' 
 #' @export
 univ_quant <- function(x,
@@ -224,7 +224,7 @@ univ_quant <- function(x,
 #'            wb = wb)
 #' univ_quali(list('a' = rep(LETTERS[1:5],2), 'b' = rep(letters[1:5],2)),
 #'            wb = wb)
-#' lbmisc::wb_to_xlsx(wb = wb, file = '/tmp/univ_quali.xlsx')
+#' lbmisc::wb_to_xl(wb = wb, file = '/tmp/univ_quali.xlsx')
 #' 
 #' @export
 univ_quali <- function(x = NULL,
@@ -468,7 +468,7 @@ univ_perc <- function(x,
 #' @param analysis_name label prefix
 #' @param wb a WorkBook
 #' @export
-bivariate_analysis <- function(x, group, analysis_name, wb){
+bivariate_tables <- function(x, group, analysis_name, wb){
     worker <- function(x,   # analyzed var
                        g,   # grouping var
                        xn,  # variable name

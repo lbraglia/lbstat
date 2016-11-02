@@ -35,7 +35,7 @@ univ_quant(x = airquality$Ozone, sheet = 'ozone', wb = wb)
 univ_quant(x = airquality[, c('Ozone')], wb = wb)
 univ_quant(x = airquality[, c('Ozone', 'Temp')], wb = wb)
 univ_quant(list('a' = 1:10, 'b' = 2:20), wb = wb)
-lbmisc::wb_to_xlsx(wb = wb, file = '/tmp/univ_quant.xlsx')
+lbmisc::wb_to_xl(wb = wb, file = '/tmp/univ_quant.xlsx')
 
 }
 
