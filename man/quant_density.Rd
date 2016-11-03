@@ -5,12 +5,14 @@
 \title{Plot kernel density estimates for quantitative variable of a
 list/data.frame}
 \usage{
-quant_density(x, na.rm = TRUE, ...)
+quant_density(x, na.rm = TRUE, quiet = TRUE, ...)
 }
 \arguments{
 \item{x}{a data.frame}
 
 \item{na.rm}{remove NA values from density calculation}
+
+\item{quiet}{if FALSE tells number and names of variables plotted}
 
 \item{...}{further arguments passed to \code{density}}
 }

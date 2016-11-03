@@ -5,6 +5,7 @@
 #' @importFrom graphics abline
 #' @importFrom graphics plot
 #' @importFrom lbmisc col2hex
+#' @importFrom lbmisc is.quantitative
 #' @importFrom lbmisc pretty_pval
 #' @importFrom lbmisc %nin%
 #' @importFrom methods is

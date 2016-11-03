@@ -5,7 +5,7 @@
 \title{Dispatcher for (qualitative/quantitative) bivariate tables and
 statistics.}
 \usage{
-bivariate_tables(x, group, analysis_name, wb)
+bivariate_tables(x, group, analysis_name, wb, quant_test)
 }
 \arguments{
 \item{x}{a \code{data.frame}}
@@ -15,6 +15,8 @@ bivariate_tables(x, group, analysis_name, wb)
 \item{analysis_name}{label prefix}
 
 \item{wb}{a WorkBook}
+
+\item{quant_test}{test for quantitative variables (biv_quant's test param)}
 }
 \description{
 Dispatcher for (qualitative/quantitative) bivariate tables and

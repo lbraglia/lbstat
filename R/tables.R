@@ -479,8 +479,9 @@ univ_perc <- function(x,
 #' @param group a data.frame of 1 column
 #' @param analysis_name label prefix
 #' @param wb a WorkBook
+#' @param quant_test test for quantitative variables (biv_quant's test param)
 #' @export
-bivariate_tables <- function(x, group, analysis_name, wb){
+bivariate_tables <- function(x, group, analysis_name, wb, quant_test = 'none'){
     worker <- function(x,   # analyzed var
                        g,   # grouping var
                        xn,  # variable name
@@ -495,14 +496,16 @@ bivariate_tables <- function(x, group, analysis_name, wb){
         ## print(analysis_name)
         sheet_name <- paste(analysis_name, gn, xn, sep = '_')
         label <- paste('tab', sheet_name, sep = ':')
-        f <- if (is.factor(x)) 
-                 biv_quali
-             else if (is.numeric(x))
-                 biv_quant
-             else 
-                 stop(sprintf('%s: tipo variabile non contemplato', xn))
-        f(x = x, y = g, wb = wb, sheets = sheet_name, label = label,
-          caption = if (!is.null(comment(x))) comment(x) else '')
+        caption <- if (!is.null(comment(x))) comment(x) else ''
+        if (lbmisc::is.qualitative(x)) {
+            biv_quali(x = x, y = g, wb = wb, sheets = sheet_name,
+                      label = label, caption = caption)
+        } else if (lbmisc::is.quantitative(x)) {
+            biv_quant(x = x, y = g, wb = wb, sheets = sheet_name,
+                      label = label, caption = caption,
+                      test = quant_test)
+        } else 
+            stop(sprintf('%s: tipo variabile non contemplato', xn))
     }
     invisible(Map(worker, 
                   x, 
@@ -765,9 +768,9 @@ biv_quant <- function(x, y,
     if (test %in% c('anova', 'kruskal.test')){
         db <- data.frame(x = x, y = factor(y))
         if ('anova' == test){
-            test <- stats::anova(stats::lm(x ~ y, data = db))
+            test <- stats::oneway.test(x ~ y, data = db, var.equal = FALSE)
             test_name <- 'Anova'
-            test_p <- lbmisc::pretty_pval((test$`Pr(>F)`)[1])
+            test_p <- lbmisc::pretty_pval(test$p.value)
         } else if ('kruskal.test' == test){
             test <- stats::kruskal.test(x ~ y, data = db)
             test_name <- 'Kruskal-Wallis'
