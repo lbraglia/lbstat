@@ -5,7 +5,7 @@
 \title{Dispatcher for (qualitative/quantitative) bivariate tables and
 statistics.}
 \usage{
-bivariate_tables(x, group, analysis_name, wb, quant_test)
+bivariate_tables(x, group, analysis_name, wb, quant_test = "none")
 }
 \arguments{
 \item{x}{a \code{data.frame}}

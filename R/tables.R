@@ -2,6 +2,15 @@
 ## HELPER FUNCTIONS
 ## -----------------------------------------------------------------------
 
+xlsx_caption <- function(x){
+    ## latex report caption to excel table one
+    ## remove test
+    x <- gsub('\\s{0,}\\(.+\\){1}$', '', x, perl = TRUE)
+    ## remove $$ for LaTeX formulas
+    x <- gsub('\\$', '', x)
+    lbmisc::rm_spaces(x)
+}
+
 ##
 ## helper for exporting tables ... very raw for now
 ##
@@ -10,8 +19,6 @@ xlsx_table <- function(tab, test_df, wb, sheet, caption, varname)
 
     if (sheet == '')
         sheet <- varname
-    if (caption == '')
-        caption <- gsub('_', ' ', varname)
 
     ## find a proper sheet name (C style)
     original_sheet <- sheet
@@ -22,19 +29,32 @@ xlsx_table <- function(tab, test_df, wb, sheet, caption, varname)
         attempts <- attempts + 1L
     }
     
-    ## todo: use caption
+    ## workbook setup
     openxlsx::addWorksheet(wb = wb, sheetName = sheet)
-    openxlsx::writeData(wb = wb, sheet = sheet, x = tab,
-                        rowNames = TRUE)
-
+    spacing <- 1
+    
+    ## caption
+    if (caption != ''){
+        caption <- xlsx_caption(caption)
+        caption <- data.frame('caption' = caption)
+        openxlsx::writeData(wb = wb, sheet = sheet, x = caption,
+                            colNames = FALSE)
+        this_table_rows <- 1
+        next_row <- this_table_rows + spacing + 1
+    } else
+        next_row <- 1
+    
+    ## data
+    openxlsx::writeData(wb = wb, sheet = sheet, x = tab, rowNames = TRUE,
+                        startRow = next_row)
+    this_table_rows <- nrow(tab) + 1 ## +1 for table header
+    next_row <- next_row + this_table_rows + spacing
+        
     ## test
-    if (is.data.frame(test_df)){
-        tab_rows <- nrow(tab) + 1 ## +1 for table header
-        spacing <- 2
-        start_row <- tab_rows + spacing
+    if (is.data.frame(test_df))
         openxlsx::writeData(wb = wb, sheet = sheet, x = test_df,
-                            rowNames = FALSE, startRow = start_row)
-    }
+                            rowNames = FALSE, startRow = next_row)
+
 }
 
 ## helper of xlsx_table: find a sensible sheetname
@@ -671,7 +691,7 @@ biv_quali <- function(x = NULL,
         ## evaluate test and extract useful things
         test_p <- lbmisc::pretty_pval(test$p.value)
         test_string <- sprintf('%s test p-value: %s', test_name, test_p)
-        test_df <- data.frame('Test' = test_name, 'p-value' = test_p)
+        test_df <- data.frame('p-value' = test_p, 'Test' = test_name)
         caption <- paste0(caption, ' (', test_string, ')')
     } else {
         test_df <- NULL
@@ -779,7 +799,7 @@ biv_quant <- function(x, y,
             stop('Something strange happened in testing')
         
         test_string <- sprintf('%s test p-value: %s', test_name, test_p)
-        test_df <- data.frame('Test' = test_name, 'p-value' = test_p)
+        test_df <- data.frame('p-value' = test_p, 'Test' = test_name)
         caption <- paste0(caption, ' (', test_string, ')')
     } else {
         test_df <- NULL
