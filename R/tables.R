@@ -726,8 +726,8 @@ biv_quali <- function(x = NULL,
         invisible(rval)
     } else {
         ## normal printing
+        message(caption, '\n')
         print(rval)
-        message('\n', caption, '\n')
         invisible(rval)
     }
 
