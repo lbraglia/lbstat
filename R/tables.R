@@ -568,8 +568,6 @@ bivariate_tables <- function(x, group, analysis_name, wb, quant_test = 'none'){
 #' x <- airquality$Ozone < 80
 #' y <- airquality$Month 
 #' biv_quali(x = x, y = y, latex = FALSE, test = 'none')
-#' biv_quali(x = x, y = y, latex = FALSE, test = 'none',
-#'           exclude_NA_perc = FALSE)
 #' biv_quali(x = x, y = y, latex = FALSE, test = 'none', freq_sort = 'asc')
 #' biv_quali(x = x, y = y, latex = FALSE, test = 'none', freq_sort = 'desc')
 #' biv_quali(x = x, y = y, latex = FALSE, test = 'none', perc = FALSE )
@@ -608,16 +606,19 @@ biv_quali <- function(x = NULL,
     row_sums <- rowSums(abs_freq)
     test <- match.arg(test)
 
-    if( is.na(freq_sorting) ) {
-        ## do nothing
-    } else if(freq_sorting == 'desc') {
-        ## descending ordered frequencies
-        abs_freq <- abs_freq[rev(order(row_sums)), ]
-    } else if( freq_sorting == 'asc') {
-        ## ascending ordered frequencies
-        abs_freq <- abs_freq[order(row_sums), ]
-    }   ## otherwise, do nothing
-
+    if (freq_sorting %in% c('asc', 'desc')){
+        there_are_NA <- is.na(rownames(abs_freq)[nrow(abs_freq)])
+        row_indexes <- if (!there_are_NA) {
+                           order(row_sums, decreasing = freq_sorting == 'desc')
+                       } else {
+                           ## remove the last row from order determination
+                           c(order(row_sums[-length(row_sums)], decreasing = freq_sorting == 'desc'),
+                             length(row_sums))
+                       }
+        
+        abs_freq <- abs_freq[row_indexes, ]
+    }
+    
     ## column percentages 
     rel_freq <- prop.table(abs_freq, margin = 2) * 100
     ## rm row NA percentage and back percentages to 100
