@@ -726,7 +726,7 @@ biv_quali <- function(x = NULL,
         invisible(rval)
     } else {
         ## normal printing
-        message(caption, '\n')
+        message(caption)
         print(rval)
         invisible(rval)
     }
@@ -828,8 +828,8 @@ biv_quant <- function(x, y,
                              table.placement = latex_placement)
         invisible(rval)
     } else {
+        message(caption)
         print(rval)
-        message('\n', caption, '\n')
         invisible(rval)
     }
 }
