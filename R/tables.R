@@ -565,11 +565,13 @@ bivariate_tables <- function(x, group, analysis_name, wb, quant_test = 'none'){
 #' @param sheets optional sheet names (same length as the number of
 #'     tables)
 #' @examples
-#' x <- airquality$Ozone > 80
+#' x <- airquality$Ozone < 80
 #' y <- airquality$Month 
 #' biv_quali(x = x, y = y, latex = FALSE, test = 'none')
 #' biv_quali(x = x, y = y, latex = FALSE, test = 'none',
 #'           exclude_NA_perc = FALSE)
+#' biv_quali(x = x, y = y, latex = FALSE, test = 'none', freq_sort = 'asc')
+#' biv_quali(x = x, y = y, latex = FALSE, test = 'none', freq_sort = 'desc')
 #' biv_quali(x = x, y = y, latex = FALSE, test = 'none', perc = FALSE )
 #' @export
 biv_quali <- function(x = NULL,
