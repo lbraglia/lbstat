@@ -90,6 +90,10 @@ get_comments <- function(x) {
 #'
 #' @param x a \code{data.frame}
 #' @param wb a WorkBook
+#' @param latex use latex for printing (default = TRUE)
+#' @param univ_perc_params other options (named list) for univ_perc
+#' @param univ_quant_params other options (named list) for univ_quant
+#' @param univ_quali_params other options (named list) for univ_quali
 #' @examples
 #' 
 #' wb = openxlsx::createWorkbook()
@@ -97,7 +101,11 @@ get_comments <- function(x) {
 #' lbmisc::wb_to_xl(wb = wb, file = '/tmp/univariate_tables.xlsx')
 #' 
 #' @export
-univariate_tables <- function(x, wb = NULL){
+univariate_tables <- function(x, wb = NULL, latex = TRUE,
+                              univ_perc_params = list(),
+                              univ_quant_params = list(),
+                              univ_quali_params = list()      
+                              ){
     stopifnot(is.data.frame(x))
     zero_ones <- unlist(lapply(x, function(y) all(y %in% c(NA, 0, 1))))
     numerics  <- unlist(lapply(x, is.numeric)) & (! zero_ones)
@@ -108,16 +116,34 @@ univariate_tables <- function(x, wb = NULL){
 
     if (any(zero_ones)) {
         zo <- x[, zero_ones, drop = FALSE]
-        univ_perc(zo, caption = 'Percentuali', wb = wb)
+        perc_base_params <- list("x" = zo,
+                                 "caption" = 'Percentuali',
+                                 wb = wb,
+                                 latex = latex)
+        perc_params <- c(perc_base_params, univ_perc_params)
+        do.call(univ_perc, perc_params)
+        ## univ_perc(zo, caption = 'Percentuali', wb = wb, latex = latex)
     }
     if (any(numerics)){
         nums <- x[, numerics, drop = FALSE]
-        univ_quant(nums, caption = 'Variabili quantitative', wb = wb)
+        quant_base_params <- list("x" = nums,
+                                  "caption" = 'Variabili quantitative',
+                                  "wb" = wb,
+                                  "latex" = latex)
+        quant_params <- c(quant_base_params, univ_quant_params)
+        do.call(univ_quant, quant_params)
+        ## univ_quant(nums, caption = 'Variabili quantitative',
+        ##            wb = wb, latex = latex)
     }
     if (any(factors)){
         categs <- x[, factors, drop = FALSE]
-        univ_quali(categs, wb = wb)
-    }
+        quali_base_params <- list("x" = categs,
+                                  "wb" = wb,
+                                  "latex" = latex)
+        quali_params <- c(quali_base_params, univ_quali_params)
+        do.call(univ_quali, quali_params)
+        ## univ_quali(categs, wb = wb, latex = latex)
+    }                                   
     invisible(NULL)
 }
 
