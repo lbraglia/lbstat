@@ -5,12 +5,21 @@
 \title{Dispatcher for (qualitative/quantitative) univariate tables and
 statistics.}
 \usage{
-univariate_tables(x, wb = NULL)
+univariate_tables(x, wb = NULL, latex = TRUE, univ_perc_params = list(),
+  univ_quant_params = list(), univ_quali_params = list())
 }
 \arguments{
 \item{x}{a \code{data.frame}}
 
 \item{wb}{a WorkBook}
+
+\item{latex}{use latex for printing (default = TRUE)}
+
+\item{univ_perc_params}{other options (named list) for univ_perc}
+
+\item{univ_quant_params}{other options (named list) for univ_quant}
+
+\item{univ_quali_params}{other options (named list) for univ_quali}
 }
 \description{
 Dispatcher for (qualitative/quantitative) univariate tables and
@@ -23,4 +32,3 @@ univariate_tables(airquality, wb = wb)
 lbmisc::wb_to_xl(wb = wb, file = '/tmp/univariate_tables.xlsx')
 
 }
-

@@ -29,4 +29,3 @@ default) and addsmargins.
 \examples{
 with(airquality, Table(Month, Day))
 }
-

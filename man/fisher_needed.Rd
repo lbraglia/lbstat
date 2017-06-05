@@ -7,7 +7,7 @@
 fisher_needed(x = NULL, y = NULL, threshold = 5L, full_report = FALSE)
 }
 \arguments{
-\item{x}{first variable}
+\item{x}{first variable, a table or a matrix}
 
 \item{y}{second variable}
 
@@ -19,4 +19,13 @@ fisher_needed(x = NULL, y = NULL, threshold = 5L, full_report = FALSE)
 \description{
 Check wether Fisher's exact test is needed (or chi-square is ok)
 }
+\examples{
+test <- matrix(c(1, 20, 15, 3), byrow = TRUE, ncol = 2)
+fisher_needed(test)
+fisher_needed(as.table(test))
 
+TeaTasting <- matrix(c(3, 1, 1, 3), nrow = 2,
+                     dimnames = list(Guess = c("Milk", "Tea"),
+                                     Truth = c("Milk", "Tea")))
+fisher_needed(TeaTasting)
+}

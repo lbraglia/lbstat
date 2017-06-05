@@ -57,4 +57,3 @@ univ_quali(list('a' = rep(LETTERS[1:5],2), 'b' = rep(letters[1:5],2)),
 lbmisc::wb_to_xl(wb = wb, file = '/tmp/univ_quali.xlsx')
 
 }
-

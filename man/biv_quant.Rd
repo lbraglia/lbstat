@@ -36,4 +36,3 @@ tables)}
 \description{
 Bivariate table for a main quantitative vector
 }
-

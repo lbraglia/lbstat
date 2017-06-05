@@ -16,4 +16,3 @@ desc(x, na.rm = TRUE, exclude = "")
 \description{
 A vector of common descriptive statistics for quantitative data
 }
-

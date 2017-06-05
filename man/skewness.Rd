@@ -15,4 +15,3 @@ skewness(x, na.rm = FALSE)
 skewness calculator, parametrized as in
 \url{http://www.stata.com/manuals13/rsummarize.pdf}
 }
-

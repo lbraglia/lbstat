@@ -15,4 +15,3 @@ kurtosis(x, na.rm = FALSE)
 kurtosis calculator, parametrized as in
 \url{http://www.stata.com/manuals13/rsummarize.pdf}
 }
-

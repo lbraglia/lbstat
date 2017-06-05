@@ -38,4 +38,3 @@ univ_quant(list('a' = 1:10, 'b' = 2:20), wb = wb)
 lbmisc::wb_to_xl(wb = wb, file = '/tmp/univ_quant.xlsx')
 
 }
-

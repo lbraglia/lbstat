@@ -22,4 +22,3 @@ bivariate_tables(x, group, analysis_name, wb, quant_test = "none")
 Dispatcher for (qualitative/quantitative) bivariate tables and
 statistics.
 }
-

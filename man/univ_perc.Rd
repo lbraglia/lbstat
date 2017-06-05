@@ -36,4 +36,3 @@ set.seed(1)
 data <- as.data.frame(matrix(rbinom(100, 1, p = 0.5), ncol = 10))
 univ_perc(x = data)
 }
-
