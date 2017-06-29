@@ -102,8 +102,12 @@ get_comments <- function(x) {
 #' 
 #' @export
 univariate_tables <- function(x, wb = NULL, latex = TRUE,
-                              univ_perc_params = list(),
-                              univ_quant_params = list(),
+                              univ_perc_params = list(
+                                  caption = 'Percentuali'
+                              ),
+                              univ_quant_params = list(
+                                  caption = 'Variabili quantitative'
+                              ),
                               univ_quali_params = list()      
                               ){
     stopifnot(is.data.frame(x))
@@ -116,33 +120,27 @@ univariate_tables <- function(x, wb = NULL, latex = TRUE,
 
     if (any(zero_ones)) {
         zo <- x[, zero_ones, drop = FALSE]
-        perc_base_params <- list("x" = zo,
-                                 "caption" = 'Percentuali',
+        perc_base_params <- list(x = zo,
                                  wb = wb,
                                  latex = latex)
         perc_params <- c(perc_base_params, univ_perc_params)
         do.call(univ_perc, perc_params)
-        ## univ_perc(zo, caption = 'Percentuali', wb = wb, latex = latex)
     }
     if (any(numerics)){
         nums <- x[, numerics, drop = FALSE]
-        quant_base_params <- list("x" = nums,
-                                  "caption" = 'Variabili quantitative',
-                                  "wb" = wb,
-                                  "latex" = latex)
+        quant_base_params <- list(x = nums,
+                                  wb = wb,
+                                  latex = latex)
         quant_params <- c(quant_base_params, univ_quant_params)
         do.call(univ_quant, quant_params)
-        ## univ_quant(nums, caption = 'Variabili quantitative',
-        ##            wb = wb, latex = latex)
     }
     if (any(factors)){
         categs <- x[, factors, drop = FALSE]
-        quali_base_params <- list("x" = categs,
-                                  "wb" = wb,
-                                  "latex" = latex)
+        quali_base_params <- list(x = categs,
+                                  wb = wb,
+                                  latex = latex)
         quali_params <- c(quali_base_params, univ_quali_params)
         do.call(univ_quali, quali_params)
-        ## univ_quali(categs, wb = wb, latex = latex)
     }                                   
     invisible(NULL)
 }
