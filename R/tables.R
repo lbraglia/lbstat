@@ -91,6 +91,8 @@ get_comments <- function(x) {
 #' @param x a \code{data.frame}
 #' @param wb a WorkBook
 #' @param latex use latex for printing (default = TRUE)
+#' @param style if 'raw' display variables in the order given, if 'type'
+#' display variable by type
 #' @param univ_perc_params other options (named list) for univ_perc
 #' @param univ_quant_params other options (named list) for univ_quant
 #' @param univ_quali_params other options (named list) for univ_quali
@@ -102,46 +104,65 @@ get_comments <- function(x) {
 #' 
 #' @export
 univariate_tables <- function(x, wb = NULL, latex = TRUE,
-                              univ_perc_params = list(
-                                  caption = 'Percentuali'
-                              ),
-                              univ_quant_params = list(
-                                  caption = 'Variabili quantitative'
-                              ),
+                              style = c('raw', 'type'),
+                              univ_perc_params = list(),
+                              univ_quant_params = list(),
                               univ_quali_params = list()      
                               ){
     stopifnot(is.data.frame(x))
+    style <- match.arg(style)
+    ## logical vectors
     zero_ones <- unlist(lapply(x, function(y) all(y %in% c(NA, 0, 1))))
     numerics  <- unlist(lapply(x, is.numeric)) & (! zero_ones)
     factors   <- unlist(lapply(x, is.factor))
     ignored   <- ! (zero_ones | numerics | factors) 
     if (any(ignored))
-        warning('Ignored vars:\n', paste(names(x)[ignored], collapse=", "))
+        warning('Ignored vars:\n\t', paste(names(x)[ignored], collapse = ", "))
 
-    if (any(zero_ones)) {
-        zo <- x[, zero_ones, drop = FALSE]
-        perc_base_params <- list(x = zo,
-                                 wb = wb,
-                                 latex = latex)
-        perc_params <- c(perc_base_params, univ_perc_params)
-        do.call(univ_perc, perc_params)
+    ## same pointed variables, but vector of chars names
+    x_names <- names(x)
+    zero_ones_c <- x_names[zero_ones]
+    numerics_c  <- x_names[numerics]
+    factors_c   <- x_names[factors]
+
+    if (style == 'raw'){
+        for (varname in x_names){
+            data <- x[, varname, drop = FALSE]
+            if (varname %in% zero_ones_c){
+                params <- c(list(x = data, wb = wb, latex = latex),
+                            univ_perc_params)
+                do.call(univ_perc, params)
+            } else if (varname %in% numerics_c){
+                params <- c(list(x = data, wb = wb, latex = latex),
+                            univ_quant_params)
+                do.call(univ_quant, params)
+            } else if (varname %in% factors_c){
+                params <- c(list(x = data, wb = wb, latex = latex),
+                            univ_quali_params)
+                do.call(univ_quali, params)
+            }
+        }
+    } else if (style == 'type') {
+        if (any(zero_ones)) {
+            data <- x[, zero_ones, drop = FALSE]
+            params <- c(list(x = data, wb = wb, latex = latex),
+                        univ_perc_params)
+            do.call(univ_perc, params)
+        }
+        if (any(numerics)){
+            data <- x[, numerics, drop = FALSE]
+            params <- c(list(x = data, wb = wb, latex = latex),
+                        univ_quant_params)
+            do.call(univ_quant, params)
+        }
+        if (any(factors)){
+            data <- x[, factors, drop = FALSE]
+            params <- c(list(x = data, wb = wb, latex = latex),
+                        univ_quali_params)
+            do.call(univ_quali, params)
+        }                                   
     }
-    if (any(numerics)){
-        nums <- x[, numerics, drop = FALSE]
-        quant_base_params <- list(x = nums,
-                                  wb = wb,
-                                  latex = latex)
-        quant_params <- c(quant_base_params, univ_quant_params)
-        do.call(univ_quant, quant_params)
-    }
-    if (any(factors)){
-        categs <- x[, factors, drop = FALSE]
-        quali_base_params <- list(x = categs,
-                                  wb = wb,
-                                  latex = latex)
-        quali_params <- c(quali_base_params, univ_quali_params)
-        do.call(univ_quali, quali_params)
-    }                                   
+    
     invisible(NULL)
 }
 
@@ -185,11 +206,12 @@ univ_quant <- function(x,
         sheets <- ''
 
     comments <- get_comments(x)
-    
+
+    ## he's making a list ...
     if (is.data.frame(x)){
         x <- as.list(x)
     } else if (is.list(x)){
-        # do nothing
+        ## do nothing
     } else {
         xname <- deparse(substitute(x))
         xname <-  gsub('^.+\\$', '', xname)
@@ -197,12 +219,20 @@ univ_quant <- function(x,
         names(x) <- xname
     }
 
+    ## data frame of results
     rval <- do.call(rbind, lapply(x, desc))
 
     if (use_comments){
         usable <- comments %nin% ''
-        if (any(usable))
-            rownames(rval)[usable] <- comments[usable]
+        if (any(usable)){
+            ## if only 1 usable, use it as caption (if it's currently '')
+            ## otherwise use them as comments
+            if (sum(usable) == 1L){
+                if (caption == '') caption <- comments[usable]
+            } else {
+                rownames(rval)[usable] <- comments[usable]
+            }
+        }
     }
     
     varnames <- strtrim(paste(rownames(rval), collapse = '_'), 31)
