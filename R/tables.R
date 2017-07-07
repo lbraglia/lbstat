@@ -115,9 +115,20 @@ univariate_tables <- function(x, wb = NULL, latex = TRUE,
     zero_ones <- unlist(lapply(x, function(y) all(y %in% c(NA, 0, 1))))
     numerics  <- unlist(lapply(x, is.numeric)) & (! zero_ones)
     factors   <- unlist(lapply(x, is.factor))
-    ignored   <- ! (zero_ones | numerics | factors) 
-    if (any(ignored))
-        warning('Ignored vars:\n\t', paste(names(x)[ignored], collapse = ", "))
+
+    ## check variables to be ignored
+    all_na    <- unlist(lapply(x, function(y) all(is.na(y))))
+    ignored_type   <- ! (zero_ones | numerics | factors)
+    ignored <- ignored_type | all_na
+    if (any(ignored)){
+        ignored_names <- names(x)[ignored]
+        warning('Some variables were ignored due to missingness (or type): ',
+                paste(ignored_names, collapse = ", "), '\n\n')
+        x         <- x[, !ignored, drop = FALSE]
+        zero_ones <- zero_ones[!ignored]
+        numerics  <- numerics[!ignored]
+        factors   <- factors[!ignored]
+    }
 
     ## same pointed variables, but vector of chars names
     x_names <- names(x)
