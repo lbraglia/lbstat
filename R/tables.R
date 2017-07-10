@@ -144,6 +144,7 @@ univariate_tables <- function(x, wb = NULL, latex = TRUE,
         mr_patterns <- paste0("^", mr_prefixes)
         mr_vars <- lapply(mr_patterns,
                           function(y) grep(y, x_names, value = TRUE))
+        names(mr_vars) <- mr_prefixes
     }
         
     if (style == 'raw'){
@@ -158,16 +159,36 @@ univariate_tables <- function(x, wb = NULL, latex = TRUE,
                         ## remove the other mr for the next cycle
                         finder <- function(x) varname %in% x
                         involved_mr <- Filter(finder, mr_vars)
+                        involved_prefix <- names(involved_mr)
                         involved_mr <- unlist(involved_mr)
                         ## adjust various data.frame
                         if (length(involved_mr) > 0L){
                             ## update data to include all mr
                             data <- x[, involved_mr, drop = FALSE]
-                            ## remove involved_mr 
+                            ## set comment from varname
+                            rm_ptrn <- sprintf('^(%s)(.+)', involved_prefix)
+                            comments <- gsub(rm_ptrn, '\\2', involved_mr)
+                            clean <- function(x){
+                                x <- gsub('[\\._]', ' ', x)
+                                x <- rm_spaces(x)
+                            }
+                            set_com <- function(dat, com) {
+                                ## set and return
+                                com <- clean(com)
+                                comment(dat) <- com
+                                dat
+                            }
+                            data[, involved_mr] <- Map(set_com,
+                                                       data[, involved_mr],
+                                                       comments)
+
+                            univ_perc_params$caption <- clean(involved_prefix)
+                            ## rm these variables from the cycle
                             x <- x[, names(x) %without% involved_mr]
                         }
                     }
-                    params <- c(list(x = data, wb = wb, latex = latex),
+                    params <- c(list(x = as.data.frame(data),
+                                     wb = wb, latex = latex),
                                 univ_perc_params)
                     do.call(univ_perc, params)
                 } else if (varname %in% numerics_c){
@@ -291,7 +312,11 @@ univ_quant <- function(x,
     if (latex) {
         ## 0 for n and NA, 2 for the others
         digits <- (!(colnames(rval) %in% c('n', 'NA')))*2
-        xt <- xtable::xtable(rval,
+        ## make rownames not to long for printing
+        tmp <- rval
+        rownames(tmp) <- strtrim(rownames(tmp), width = 32)
+        ## print
+        xt <- xtable::xtable(tmp,
                              ## align = 'c',
                              digits = c(0, digits),
                              label = label,
@@ -568,7 +593,10 @@ univ_perc <- function(x,
     }
 
     if (latex) {
-        xtab <- xtable::xtable(rval,
+        ## make rownames not to long for printing
+        tmp <- rval
+        rownames(tmp) <- strtrim(rownames(tmp), width = 32)
+        xtab <- xtable::xtable(tmp,
                                ## align = 'cc',
                                digits = c(0, 0, 2),
                                caption = caption,

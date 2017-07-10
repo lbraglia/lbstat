@@ -7,6 +7,7 @@
 #' @importFrom lbmisc col2hex
 #' @importFrom lbmisc is.quantitative
 #' @importFrom lbmisc pretty_pval
+#' @importFrom lbmisc rm_spaces
 #' @importFrom lbmisc %nin%
 #' @importFrom lbmisc %without%
 #' @importFrom methods is
