@@ -8,6 +8,7 @@
 #' @importFrom lbmisc is.quantitative
 #' @importFrom lbmisc pretty_pval
 #' @importFrom lbmisc %nin%
+#' @importFrom lbmisc %without%
 #' @importFrom methods is
 #' @importFrom openxlsx addWorksheet
 #' @importFrom openxlsx writeData

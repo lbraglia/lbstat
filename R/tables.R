@@ -92,7 +92,10 @@ get_comments <- function(x) {
 #' @param wb a WorkBook
 #' @param latex use latex for printing (default = TRUE)
 #' @param style if 'raw' display variables in the order given, if 'type'
-#' display variable by type
+#'              display variable by type
+#' @param mr_prefixes variable name prefixes (character vector); each of these
+#'     identify a set of variable who belong to the same multiple response
+#'     question
 #' @param univ_perc_params other options (named list) for univ_perc
 #' @param univ_quant_params other options (named list) for univ_quant
 #' @param univ_quali_params other options (named list) for univ_quali
@@ -105,11 +108,12 @@ get_comments <- function(x) {
 #' @export
 univariate_tables <- function(x, wb = NULL, latex = TRUE,
                               style = c('raw', 'type'),
+                              mr_prefixes = NULL,
                               univ_perc_params = list(),
                               univ_quant_params = list(),
                               univ_quali_params = list()      
                               ){
-    stopifnot(is.data.frame(x))
+    stopifnot(is.data.frame(x) && all(dim(x) > 0L))
     style <- match.arg(style)
     ## logical vectors
     zero_ones <- unlist(lapply(x, function(y) all(y %in% c(NA, 0, 1))))
@@ -136,21 +140,45 @@ univariate_tables <- function(x, wb = NULL, latex = TRUE,
     numerics_c  <- x_names[numerics]
     factors_c   <- x_names[factors]
 
+    if (!is.null(mr_prefixes)){
+        mr_patterns <- paste0("^", mr_prefixes)
+        mr_vars <- lapply(mr_patterns,
+                          function(y) grep(y, x_names, value = TRUE))
+    }
+        
     if (style == 'raw'){
         for (varname in x_names){
-            data <- x[, varname, drop = FALSE]
-            if (varname %in% zero_ones_c){
-                params <- c(list(x = data, wb = wb, latex = latex),
-                            univ_perc_params)
-                do.call(univ_perc, params)
-            } else if (varname %in% numerics_c){
-                params <- c(list(x = data, wb = wb, latex = latex),
-                            univ_quant_params)
-                do.call(univ_quant, params)
-            } else if (varname %in% factors_c){
-                params <- c(list(x = data, wb = wb, latex = latex),
-                            univ_quali_params)
-                do.call(univ_quali, params)
+            if(varname %in% names(x)){
+                ## it may not be the case since x is modifyied by mr stuff
+                data <- x[, varname, drop = FALSE]
+                if (varname %in% zero_ones_c){
+                    if (!is.null(mr_prefixes)){
+                        ## check if it's a mr,
+                        ## consider the full dataset of related mr
+                        ## remove the other mr for the next cycle
+                        finder <- function(x) varname %in% x
+                        involved_mr <- Filter(finder, mr_vars)
+                        involved_mr <- unlist(involved_mr)
+                        ## adjust various data.frame
+                        if (length(involved_mr) > 0L){
+                            ## update data to include all mr
+                            data <- x[, involved_mr, drop = FALSE]
+                            ## remove involved_mr 
+                            x <- x[, names(x) %without% involved_mr]
+                        }
+                    }
+                    params <- c(list(x = data, wb = wb, latex = latex),
+                                univ_perc_params)
+                    do.call(univ_perc, params)
+                } else if (varname %in% numerics_c){
+                    params <- c(list(x = data, wb = wb, latex = latex),
+                                univ_quant_params)
+                    do.call(univ_quant, params)
+                } else if (varname %in% factors_c){
+                    params <- c(list(x = data, wb = wb, latex = latex),
+                                univ_quali_params)
+                    do.call(univ_quali, params)
+                }
             }
         }
     } else if (style == 'type') {
