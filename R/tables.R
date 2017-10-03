@@ -621,8 +621,10 @@ univ_perc <- function(x,
 #' @param analysis_name label prefix
 #' @param wb a WorkBook
 #' @param quant_test test for quantitative variables (biv_quant's test param)
+#' @param quali_test test for qualitative variables (biv_quali's test param)
 #' @export
-bivariate_tables <- function(x, group, analysis_name, wb, quant_test = 'none'){
+bivariate_tables <- function(x, group, analysis_name, wb,
+                             quant_test = 'none', quali_test = 'none'){
     worker <- function(x,   # analyzed var
                        g,   # grouping var
                        xn,  # variable name
@@ -640,7 +642,8 @@ bivariate_tables <- function(x, group, analysis_name, wb, quant_test = 'none'){
         caption <- if (!is.null(comment(x))) comment(x) else ''
         if (lbmisc::is.qualitative(x)) {
             biv_quali(x = x, y = g, wb = wb, sheets = sheet_name,
-                      label = label, caption = caption)
+                      label = label, caption = caption,
+                      test = quali_test)
         } else if (lbmisc::is.quantitative(x)) {
             biv_quant(x = x, y = g, wb = wb, sheets = sheet_name,
                       label = label, caption = caption,

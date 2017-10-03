@@ -5,7 +5,8 @@
 \title{Dispatcher for (qualitative/quantitative) univariate tables and
 statistics.}
 \usage{
-univariate_tables(x, wb = NULL, latex = TRUE, univ_perc_params = list(),
+univariate_tables(x, wb = NULL, latex = TRUE, style = c("raw", "type"),
+  mr_prefixes = NULL, univ_perc_params = list(),
   univ_quant_params = list(), univ_quali_params = list())
 }
 \arguments{
@@ -14,6 +15,13 @@ univariate_tables(x, wb = NULL, latex = TRUE, univ_perc_params = list(),
 \item{wb}{a WorkBook}
 
 \item{latex}{use latex for printing (default = TRUE)}
+
+\item{style}{if 'raw' display variables in the order given, if 'type'
+display variable by type}
+
+\item{mr_prefixes}{variable name prefixes (character vector); each of these
+identify a set of variable who belong to the same multiple response
+question}
 
 \item{univ_perc_params}{other options (named list) for univ_perc}
 
