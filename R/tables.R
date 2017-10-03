@@ -310,25 +310,46 @@ univ_quant <- function(x,
     
     ## latex printing
     if (latex) {
-        ## 0 for n and NA, 2 for the others
-        digits <- (!(colnames(rval) %in% c('n', 'NA')))*2
-        ## make rownames not to long for printing
-        tmp <- rval
-        rownames(tmp) <- strtrim(rownames(tmp), width = 32)
-        ## print
-        xt <- xtable::xtable(tmp,
-                             ## align = 'c',
-                             digits = c(0, digits),
-                             label = label,
-                             caption = caption)
-        xtable::print.xtable(xt,
-                             table.placement = latex_placement
-                             )
+        univ_quant_latex_printer(rval,
+                                 label,
+                                 caption,
+                                 varnames,
+                                 latex_placement)
         invisible(rval)
     } else {
         return(rval)
     }
 }
+
+univ_quant_latex_printer <- function(y,
+                                     label,
+                                     caption,
+                                     varname,
+                                     latex_placement)
+{
+
+    ## make rownames not to long for printing
+    tmp <- y
+    rownames(tmp) <- strtrim(rownames(tmp), width = 32)
+
+    ## 0 for n and NA, 2 for the others
+    digits <- (!(colnames(y) %in% c('n', 'NA')))*2
+
+    if (label == '') label <- sprintf('tab:%s', varname)
+    if (caption %in% '') caption <- gsub('_', ' ', varname)
+    
+    ## print
+    xt <- xtable::xtable(tmp,
+                         ## align = 'c',
+                         digits = c(0, digits),
+                         label = label,
+                         caption = caption)
+    xtable::print.xtable(xt, table.placement = latex_placement)
+
+}
+
+
+
 
 
 #' Univariate table for categorical data.
@@ -413,7 +434,6 @@ univ_quali <- function(x = NULL,
                           useNA = useNA,
                           NA_string = NA_string,
                           freq_sorting = freq_sorting))
-
     
     ## excel exporting
     if (methods::is(wb, "Workbook")){
@@ -498,10 +518,8 @@ univ_quali_latex_printer <- function(y,
                                      latex_placement)
 {
 
-    if (label == '')
-        label <- sprintf('tab:%s', varname)
-    if (caption %in% '')
-        caption <- gsub('_', ' ', varname)
+    if (label == '') label <- sprintf('tab:%s', varname)
+    if (caption %in% '') caption <- gsub('_', ' ', varname)
     
     xt <- xtable::xtable(y,
                          ## align = 'ccc',
