@@ -980,6 +980,101 @@ biv_quant <- function(x, y,
 }
 
 
+
+
+#' Percentages table for 0-1 variables
+#'
+#' Previously called \code{univ_mr} (for multiple responses) the function make
+#' descriptive statistics (n, percentages) for 0-1 variables
+#' 
+#' @param x a single qualitative variable or a data.frame
+#'      of qualitative variable
+#' @param y a single qualitative variable or a data.frame
+#'      of qualitative variable
+#' @param wb an openxlsx Workbook; if not NULL the table will be saved
+#'     in the workbook too, aside printing
+#' @param sheets optional sheet names
+#' @export
+biv_perc <- function(x, y, wb = NULL, sheets = NULL){
+    ## browser()
+    ## comunque nel seguito ci si aspetta che y sia un data.frame
+    ## per splitting e simili, quindi normalizziamo
+    y <- as.data.frame(y)
+    ## y deve essere a due livelli e viene calcolata la percentuale del 
+    ## livello piu alto, alternativamente utilizzare dummify
+    defactorize2 <- function(f){
+        if (!is.factor(f)) f
+        else if (nlevels(f) == 2L) as.integer(f) - 1
+        else lbmisc::dummify(if (anyNA(f)) addNA(f) else f)
+    }
+    y <- lapply(y, defactorize2)
+    y <- if (length(y) > 1) as.data.frame(do.call(cbind, y)) else y[[1]]
+    ## il contatore conta degli 0 e degli 1
+    the_counter <- function(x){
+        stopifnot(all(x %in% c(0, 1, NA)))
+        n = sum(!is.na(x))
+        p = sum(x, na.rm = TRUE)
+        perc = (p/n)*100
+        data.frame(n, p,  perc)
+    }
+    ## l'analisi varia a seconda che x sia una variabile o un dataframe
+    dimx <- dim(x)
+    if(is.null(dimx)){ # x è variabile
+        ## se i livelli di x sono solo 2 non splittare ma considera l'1 o 
+        ## il livello più altro, altrimenti splitta
+        two_levels <- all(x %in% c(0,1, NA)) || nlevels(x) == 2L
+        analysis_dbs <- if (two_levels){
+                           ## se solo due livelli
+                           if (is.numeric(x)) list(y[x %in% 1, ])
+                           else list(y[x %in% levels(x)[2], ])
+                       } else ## se più di due livelli splitta
+                           split(y, f = x)
+        ## splittare la y in base alla x, applicare la funzione di conta
+        res <-  lapply(analysis_dbs,
+                       function(g) # per ogni gruppo (ossia modalita)
+                           do.call(rbind, 
+                                   ## per ogni variabile entro ogni
+                                   ## modalita fai la conta
+                                   lapply(g, 
+                                          function (v) the_counter(v))))
+    } else if (dimx[2] > 1){ # x è dataframe
+        ## a turno per ogni colonna di x splittare la y in base alla x
+        ## in questo modo group è una variabile
+        res <- lapply(x, function(group){
+            two_levels <- all(group %in% c(0,1, NA)) || nlevels(group) == 2L
+            analysis_dbs <- 
+                if (two_levels){
+                    my_grp <- if (is.numeric(group)) 1L else levels(group)[2]
+                    ## fai il subset del gruppo di interesse gestendo e
+                    ## uniformando il fatto y sia un vettore o un data.frame
+                    if (is.data.frame(y)) list(y[group %in% my_grp, ])
+                    else list(data.frame(y[group %in% my_grp]))
+                } else { ## se più di due livelli splitta
+                    split(y, f = group)
+                }
+            ## per ogni dataset così splittato
+            do.call(rbind, lapply(analysis_dbs, function(single_dataset){
+                ## a turno per ogni variabile fai il conteggio
+                tmp <- lapply(single_dataset, the_counter)
+                ## e collassa con rbind per mantenere gestibilità della cosa
+                do.call(rbind, tmp)
+            }))
+        })
+        ## da qui ne esce una lista con un elemento per ogni variabile x, che
+        ## andiamo a collassare per avere un unico data.frame in seguito
+    } else stop('x deve essere una variabile o un dataframe')
+    ## tengo solo le righe dove si ha almeno una corrispondenza per pulire
+    ## l'output e ordino per frequenze decrescenti
+    res <- do.call(rbind, res)
+    res <- res[res$p > 0, ]
+    res <- res[with(res, order(n, p, decreasing = TRUE)), ]
+    if (!(is.null(wb) || is.null(sheet)))
+        add_to_wb(wb = wb, sheet = strtrim(sheets, 31), x = res, rowNames = TRUE)
+    res
+}
+
+
+
 #' Cross tabulation and table creation
 #' 
 #' This is a wrapper around table (using \code{useNA = "ifany"} by
