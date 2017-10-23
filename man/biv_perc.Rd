@@ -4,14 +4,22 @@
 \alias{biv_perc}
 \title{Percentages table for 0-1 variables}
 \usage{
-biv_perc(x, y, wb = NULL, sheets = NULL)
+biv_perc(x, y, collapse_binary_x = FALSE, only_non_zero_perc = FALSE,
+  ordered = FALSE, wb = NULL, sheets = NULL)
 }
 \arguments{
-\item{x}{a single qualitative variable or a data.frame
-of qualitative variable}
+\item{x}{a single qualitative variable or a data.frame of
+qualitative variable}
 
-\item{y}{a single qualitative variable or a data.frame
-of qualitative variable}
+\item{y}{a single qualitative variable or a data.frame of
+qualitative variable}
+
+\item{collapse_binary_x}{regarding x, keep in row only the 1 in 0-1
+variable or the last level for factors for x}
+
+\item{only_non_zero_perc}{print only non zero percentages rows}
+
+\item{ordered}{decreasing frequencies ordered table}
 
 \item{wb}{an openxlsx Workbook; if not NULL the table will be saved
 in the workbook too, aside printing}
