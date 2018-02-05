@@ -12,3 +12,9 @@ pretty_model(mod, ...)
 \description{
 export the model as a table with confidence interval and p-values
 }
+\examples{
+
+## lm
+pretty_model(lm(dist ~ speed,  data = cars))
+
+}

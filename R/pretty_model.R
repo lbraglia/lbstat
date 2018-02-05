@@ -25,6 +25,7 @@ pretty_model <- function(mod, ...){
                    else stop('Family of glm not handled')
     } else if (inherits(mod, "coxph")) {
         f <- exp
+        p <- stats::coef(smod)[, 5]
         estname <- 'HR'
     } else if (inherits(mod, 'lm')) {
         f <- identity
