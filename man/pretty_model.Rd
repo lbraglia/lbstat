@@ -8,6 +8,8 @@ pretty_model(mod, ...)
 }
 \arguments{
 \item{mod}{a lm, glm or coxph object}
+
+\item{...}{other options passed to \code{ci}}
 }
 \description{
 export the model as a table with confidence interval and p-values
@@ -15,6 +17,28 @@ export the model as a table with confidence interval and p-values
 \examples{
 
 ## lm
-pretty_model(lm(dist ~ speed,  data = cars))
+mod_lm <- lm(dist ~ speed,  data = cars)
+pretty_model(mod_lm)
+
+## binomial glm
+cars$distgt36 <- cars$dist > 36
+mod_binomial_glm <- glm(distgt36 ~ speed,  data = cars, family = binomial)
+pretty_model(mod_binomial_glm)
+
+## poisson glm
+counts <- c(18, 17, 15, 20, 10, 20, 25, 13, 12)
+outcome <- gl(3, 1, 9)
+treatment <- gl(3, 3)
+mod_poisson_glm <- glm(counts ~ outcome + treatment, family = poisson)
+pretty_model(mod_poisson_glm)
+
+## coxph
+library(survival)
+test1 <- list(time = c(4, 3, 1, 1, 2, 2, 3),
+              status = c(1, 1, 1, 0, 1, 1, 0),
+              x = c(0, 2, 1, 1, 1, 0, 0),
+              sex = c(0, 0, 0, 0, 1, 1, 1))
+mod_coxph <- coxph(Surv(time, status) ~ x + sex, data = test1)
+pretty_model(mod_coxph)
 
 }
