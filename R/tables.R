@@ -686,6 +686,8 @@ bivariate_tables <- function(x, group, analysis_name, wb,
 #' @param y column variable: a discrete quantitative variable, a
 #'     character or a factor
 #' @param totals print totals?
+#' @param tot_row_label label for rows total
+#' @param tot_col_label label for columns total
 #' @param useNA print NA?
 #' @param perc print column percentage (default = TRUE)
 #' @param exclude_NA_perc remove NA from percentages (default = TRUE)
@@ -717,6 +719,8 @@ bivariate_tables <- function(x, group, analysis_name, wb,
 biv_quali <- function(x = NULL,
                       y = NULL,
                       totals = TRUE,
+                      tot_row_label = 'Tot',
+                      tot_col_label = 'Tot',
                       useNA = 'ifany',
                       perc = TRUE,
                       exclude_NA_perc = TRUE,
@@ -793,12 +797,14 @@ biv_quali <- function(x = NULL,
                 (col_tot_perc / sum(col_tot_perc, na.rm = TRUE))
         }
         rval <- cbind(rval, 'Tot' = row_sums, '%' = col_tot_perc)
+        colnames(rval)[ncol(rval) - 1] <- tot_col_label
 
         ## columns totals
         col_sums <- colSums(rval)
         ## put NA to percentage sums (100%) which is obvious: odd columns
         col_sums[seq(from = 2, to = length(col_sums), by = 2)] <- NA
         rval <- rbind(rval, 'Tot' = col_sums)
+        rownames(rval)[nrow(rval)] <- tot_row_label
     }
 
     ## print percentages?
