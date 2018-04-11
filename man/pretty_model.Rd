@@ -15,7 +15,7 @@ pretty_model(mod, ...)
 export the model as a table with confidence interval and p-values
 }
 \examples{
-
+\dontrun{
 ## lm
 mod_lm <- lm(dist ~ speed,  data = cars)
 pretty_model(mod_lm)
@@ -40,5 +40,5 @@ test1 <- list(time = c(4, 3, 1, 1, 2, 2, 3),
               sex = c(0, 0, 0, 0, 1, 1, 1))
 mod_coxph <- coxph(Surv(time, status) ~ x + sex, data = test1)
 pretty_model(mod_coxph)
-
+}
 }

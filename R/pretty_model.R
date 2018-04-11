@@ -6,7 +6,7 @@
 #' @param ... other options passed to \code{ci}
 #' 
 #' @examples
-#' 
+#' \dontrun{
 #' ## lm
 #' mod_lm <- lm(dist ~ speed,  data = cars)
 #' pretty_model(mod_lm)
@@ -31,7 +31,7 @@
 #'               sex = c(0, 0, 0, 0, 1, 1, 1))
 #' mod_coxph <- coxph(Surv(time, status) ~ x + sex, data = test1)
 #' pretty_model(mod_coxph)
-#' 
+#' }
 #' @export
 pretty_model <- function(mod, ...){
     est <- stats::coef(mod)
