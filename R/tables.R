@@ -1099,8 +1099,8 @@ biv_perc <- function(x, y,
     res <- do.call(rbind, res)
     if (only_non_zero_perc) res <- res[res$p > 0, ]
     if (ordered) res <- res[with(res, order(n, p, decreasing = TRUE)), ]
-    if (!(is.null(wb) || is.null(sheet)))
-        add_to_wb(wb = wb, sheet = strtrim(sheets, 31),
+    if (!(is.null(wb) || is.null(sheets)))
+        lbmisc::add_to_wb(wb = wb, sheet = strtrim(sheets, 31),
                   x = res, rowNames = TRUE)
     res
 }

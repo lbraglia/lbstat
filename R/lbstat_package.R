@@ -6,6 +6,7 @@
 #' @importFrom graphics plot
 #' @importFrom lbmisc %nin%
 #' @importFrom lbmisc %without%
+#' @importFrom lbmisc add_to_wb
 #' @importFrom lbmisc col2hex
 #' @importFrom lbmisc dummify
 #' @importFrom lbmisc is.quantitative
