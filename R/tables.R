@@ -126,7 +126,7 @@ univariate_tables <- function(x, wb = NULL, latex = TRUE,
     ignored <- ignored_type | all_na
     if (any(ignored)){
         ignored_names <- names(x)[ignored]
-        warning('Some variables were ignored due to missingness (or type): ',
+        message('Some variables were ignored due to missingness (or type): ',
                 paste(ignored_names, collapse = ", "), '\n\n')
         x         <- x[, !ignored, drop = FALSE]
         zero_ones <- zero_ones[!ignored]
@@ -179,12 +179,12 @@ univariate_tables <- function(x, wb = NULL, latex = TRUE,
                                 dat
                             }
                             data[, involved_mr] <- Map(set_com,
-                                                       data[, involved_mr],
+                                                       data[, involved_mr, drop = FALSE],
                                                        comments)
 
                             univ_perc_params$caption <- clean(involved_prefix)
                             ## rm these variables from the cycle
-                            x <- x[, names(x) %without% involved_mr]
+                            x <- x[, names(x) %without% involved_mr, drop = FALSE]
                         }
                     }
                     params <- c(list(x = as.data.frame(data),
