@@ -91,11 +91,16 @@ get_comments <- function(x) {
 #' @param x a \code{data.frame}
 #' @param wb a WorkBook
 #' @param latex use latex for printing (default = TRUE)
-#' @param style if 'raw' display variables in the order given, if 'type'
-#'              display variable by type
-#' @param mr_prefixes variable name prefixes (character vector); each of these
-#'     identify a set of variable who belong to the same multiple response
-#'     question
+#' @param style if 'raw' display variables in the order given, if
+#'     'type' display variable by type
+#' @param exclude character vector of data.frame name to be ignored
+#' @param date_preproc function to preprocess Date columns. By default
+#'     make them Year-month factors; currently only factor, numerics
+#'     and 0-1 variable are not ignored, therefore date_preproc should
+#'     be a coercer to those types
+#' @param mr_prefixes variable name prefixes (character vector); each
+#'     of these identify a set of variable who belong to the same
+#'     multiple response question
 #' @param univ_perc_params other options (named list) for univ_perc
 #' @param univ_quant_params other options (named list) for univ_quant
 #' @param univ_quali_params other options (named list) for univ_quali
@@ -106,15 +111,27 @@ get_comments <- function(x) {
 #' lbmisc::wb_to_xl(wb = wb, file = '/tmp/univariate_tables.xlsx')
 #' 
 #' @export
-univariate_tables <- function(x, wb = NULL, latex = TRUE,
-                              style = c('raw', 'type'),
-                              mr_prefixes = NULL,
+univariate_tables <-
+    function(x, wb = NULL, latex = TRUE,
+             exclude = NULL,
+             style = c('raw', 'type'),
+             date_preproc = function(d) factor(format(d, '%Y-%m')),
+             mr_prefixes = NULL,
                               univ_perc_params = list(),
                               univ_quant_params = list(),
                               univ_quali_params = list()      
                               ){
     stopifnot(is.data.frame(x) && all(dim(x) > 0L))
     style <- match.arg(style)
+
+    ## exclude
+    x <- x[, names(x) %without% exclude, drop = FALSE]
+    
+    ## preprocess dates
+    is.Date <- function(x) inherits(x, 'Date')
+    dates <- unlist(lapply(x, is.Date))
+    x[, dates] <- lapply(x[, dates, drop = FALSE], date_preproc)
+    
     ## logical vectors
     zero_ones <- unlist(lapply(x, function(y) all(y %in% c(NA, 0, 1))))
     numerics  <- unlist(lapply(x, is.numeric)) & (! zero_ones)
@@ -124,6 +141,7 @@ univariate_tables <- function(x, wb = NULL, latex = TRUE,
     all_na    <- unlist(lapply(x, function(y) all(is.na(y))))
     ignored_type   <- ! (zero_ones | numerics | factors)
     ignored <- ignored_type | all_na
+    ignored_names <- NULL
     if (any(ignored)){
         ignored_names <- names(x)[ignored]
         message('Some variables were ignored due to missingness (or type): ',
@@ -223,7 +241,7 @@ univariate_tables <- function(x, wb = NULL, latex = TRUE,
         }                                   
     }
     
-    invisible(NULL)
+    invisible(ignored_names)
 }
 
 

@@ -5,8 +5,9 @@
 \title{Dispatcher for (qualitative/quantitative) univariate tables and
 statistics.}
 \usage{
-univariate_tables(x, wb = NULL, latex = TRUE, style = c("raw", "type"),
-  mr_prefixes = NULL, univ_perc_params = list(),
+univariate_tables(x, wb = NULL, latex = TRUE, exclude = NULL,
+  style = c("raw", "type"), date_preproc = function(d) factor(format(d,
+  "\%Y-\%m")), mr_prefixes = NULL, univ_perc_params = list(),
   univ_quant_params = list(), univ_quali_params = list())
 }
 \arguments{
@@ -16,12 +17,19 @@ univariate_tables(x, wb = NULL, latex = TRUE, style = c("raw", "type"),
 
 \item{latex}{use latex for printing (default = TRUE)}
 
-\item{style}{if 'raw' display variables in the order given, if 'type'
-display variable by type}
+\item{exclude}{character vector of data.frame name to be ignored}
 
-\item{mr_prefixes}{variable name prefixes (character vector); each of these
-identify a set of variable who belong to the same multiple response
-question}
+\item{style}{if 'raw' display variables in the order given, if
+'type' display variable by type}
+
+\item{date_preproc}{function to preprocess Date columns. By default
+make them Year-month factors; currently only factor, numerics
+and 0-1 variable are not ignored, therefore date_preproc should
+be a coercer to those types}
+
+\item{mr_prefixes}{variable name prefixes (character vector); each
+of these identify a set of variable who belong to the same
+multiple response question}
 
 \item{univ_perc_params}{other options (named list) for univ_perc}
 
