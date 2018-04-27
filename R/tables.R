@@ -684,8 +684,10 @@ bivariate_tables <- function(x, group, analysis_name, wb,
             biv_quant(x = x, y = g, wb = wb, sheets = sheet_name,
                       label = label, caption = caption,
                       test = quant_test)
-        } else 
-            stop(sprintf('%s: tipo variabile non contemplato', xn))
+        } else {
+            msg <- sprintf('%s: tipo variabile non contemplato. La salto.', xn)
+            warning(msg)
+        }
     }
     invisible(Map(worker, 
                   x, 
