@@ -660,7 +660,7 @@ univ_perc <- function(x,
 #' @param quali_test test for qualitative variables (biv_quali's test param)
 #' @export
 bivariate_tables <- function(x, group, analysis_name, wb,
-                             quant_test = 'none', quali_test = 'none'){
+                             quant_test = 'none', quali_test = 'auto'){
     worker <- function(x,   # analyzed var
                        g,   # grouping var
                        xn,  # variable name
