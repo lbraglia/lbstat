@@ -43,7 +43,6 @@ kurtosis <- function(x, na.rm = FALSE){
 #' @export
 desc <- function(x, na.rm = TRUE, exclude = ''){
     qq <- unname(stats::quantile(x, probs = c(0.25, 0.5, 0.75), na.rm = na.rm))
-
     exclude <- tolower(exclude)
     Exclude <- c(any(exclude %in% 'n'),
                  any(exclude %in% c('na',NA)),
@@ -54,15 +53,31 @@ desc <- function(x, na.rm = TRUE, exclude = ''){
                  any(exclude %in% c('3rd qu.')),
                  any(exclude %in% c('max')),
                  any(exclude %in% c('std. dev.')))
+    rval <-  if(all(is.na(x))) {
+                 c(length(x),  
+                   sum(is.na(x)),
+                   rep(NA, 7))
+             } else {
+                 c(length(x),
+                   sum(is.na(x)),
+                   min(x, na.rm = na.rm),
+                   qq[1],
+                   qq[2],
+                   mean(x, na.rm = na.rm),
+                   qq[3],
+                   max(x, na.rm = na.rm), 
+                   sd(x, na.rm = na.rm))
+             }
+    names(rval) <- c('n',
+                     'NA',
+                     'Min',
+                     '1st Qu.',
+                     'Median',
+                     'Mean',
+                     '3rd Qu.',
+                     'Max',
+                     'Std. Dev.')
 
-    c('n' = length(x),
-      'NA' = sum(is.na(x)),
-      'Min' = min(x, na.rm = na.rm),
-      '1st Qu.' = qq[1],
-      'Median' = qq[2],
-      'Mean' = mean(x, na.rm = na.rm),
-      '3rd Qu.' = qq[3],
-      'Max' = max(x, na.rm = na.rm), 
-      'Std. Dev.' = sd(x, na.rm = na.rm)
-     )[!Exclude]
+    rval[!Exclude]
+    
 }
