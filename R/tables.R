@@ -163,7 +163,9 @@ univariate_tables <-
                           function(y) grep(y, x_names, value = TRUE))
         names(mr_vars) <- mr_prefixes
     }
-        
+
+    ## sono arrivato qui
+    
     if (style == 'raw'){
         for (varname in x_names){
             if(varname %in% names(x)){
@@ -663,6 +665,9 @@ univ_perc <- function(x,
 #'     make them Year-month factors; currently only factor, numerics
 #'     and 0-1 variable are not ignored, therefore date_preproc should
 #'     be a coercer to those types
+#' @param mr_prefixes variable name prefixes (character vector); each
+#'     of these identify a set of variable who belong to the same
+#'     multiple response question
 #' @param biv_perc_params other options (named list) for biv_perc
 #' @param biv_quant_params other options (named list) for biv_quant
 #' @param biv_quali_params other options (named list) for biv_quali
@@ -674,6 +679,7 @@ bivariate_tables <- function(x, group,
                              style = c('raw', 'type'),
                              analysis_name = 'biv',
                              date_preproc = function(d) factor(format(d, '%Y-%m')),
+                             mr_prefixes = NULL,
                              biv_perc_params = list(),
                              biv_quant_params = list(test = 'none'),
                              biv_quali_params = list(test = 'auto')
@@ -688,7 +694,41 @@ bivariate_tables <- function(x, group,
     ## preprocess dates keeping comments
     dates <- unlist(lapply(x, lbmisc::is.Date))
     x[, dates] <- preprocess_dates(x[, dates, drop = FALSE], date_preproc)
-    
+
+    ## logical vectors
+    zero_ones <- unlist(lapply(x, lbmisc::is.percentage))
+    numerics  <- unlist(lapply(x, lbmisc::is.quantitative))
+    factors   <- unlist(lapply(x, lbmisc::is.qualitative))
+
+    ## check variables to be ignored
+    all_na        <- unlist(lapply(x, function(y) all(is.na(y))))
+    ignored_type  <- ! (zero_ones | numerics | factors)
+    ignored       <- ignored_type | all_na
+    ignored_names <- NULL
+    if (any(ignored)){
+        ignored_names <- names(x)[ignored]
+        message('Some variables were ignored due to missingness (or type): ',
+                paste(ignored_names, collapse = ", "), '\n\n')
+        x         <- x[, !ignored, drop = FALSE]
+        zero_ones <- zero_ones[!ignored]
+        numerics  <- numerics[!ignored]
+        factors   <- factors[!ignored]
+    }
+
+    ## same pointed variables, but vector of chars names
+    x_names <- names(x)
+    zero_ones_c <- x_names[zero_ones]
+    numerics_c  <- x_names[numerics]
+    factors_c   <- x_names[factors]
+
+    if (!is.null(mr_prefixes)){
+        mr_patterns <- paste0("^", mr_prefixes)
+        mr_vars <- lapply(mr_patterns,
+                          function(y) grep(y, x_names, value = TRUE))
+        names(mr_vars) <- mr_prefixes
+    }
+
+    ## sono arrivato qui
     
     worker <- function(x,   # analyzed var
                        g,   # grouping var
@@ -728,6 +768,8 @@ bivariate_tables <- function(x, group,
                                       list(analysis_name)))
     else
         stop("Not implemented yet")
+
+    invisible(ignored)
 }
 
 

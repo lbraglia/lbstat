@@ -8,8 +8,9 @@ statistics.}
 bivariate_tables(x, group, wb = NULL, latex = TRUE, exclude = NULL,
   style = c("raw", "type"), analysis_name = "biv",
   date_preproc = function(d) factor(format(d, "\%Y-\%m")),
-  biv_perc_params = list(), biv_quant_params = list(test = "none"),
-  biv_quali_params = list(test = "auto"))
+  mr_prefixes = NULL, biv_perc_params = list(),
+  biv_quant_params = list(test = "none"), biv_quali_params = list(test =
+  "auto"))
 }
 \arguments{
 \item{x}{a \code{data.frame}}
@@ -31,6 +32,10 @@ bivariate_tables(x, group, wb = NULL, latex = TRUE, exclude = NULL,
 make them Year-month factors; currently only factor, numerics
 and 0-1 variable are not ignored, therefore date_preproc should
 be a coercer to those types}
+
+\item{mr_prefixes}{variable name prefixes (character vector); each
+of these identify a set of variable who belong to the same
+multiple response question}
 
 \item{biv_perc_params}{other options (named list) for biv_perc}
 
