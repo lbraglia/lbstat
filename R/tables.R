@@ -127,20 +127,19 @@ univariate_tables <-
     ## exclude
     x <- x[, names(x) %without% exclude, drop = FALSE]
     
-    ## preprocess dates
-    is.Date <- function(x) inherits(x, 'Date')
-    dates <- unlist(lapply(x, is.Date))
-    x[, dates] <- lapply(x[, dates, drop = FALSE], date_preproc)
+    ## preprocess dates keeping comments
+    dates <- unlist(lapply(x, lbmisc::is.Date))
+    x[, dates] <- preprocess_dates(x[, dates, drop = FALSE], date_preproc)
     
     ## logical vectors
-    zero_ones <- unlist(lapply(x, function(y) all(y %in% c(NA, 0, 1))))
-    numerics  <- unlist(lapply(x, is.numeric)) & (! zero_ones)
-    factors   <- unlist(lapply(x, is.factor))
+    zero_ones <- unlist(lapply(x, lbmisc::is.percentage))
+    numerics  <- unlist(lapply(x, lbmisc::is.quantitative))
+    factors   <- unlist(lapply(x, lbmisc::is.qualitative))
 
     ## check variables to be ignored
-    all_na    <- unlist(lapply(x, function(y) all(is.na(y))))
-    ignored_type   <- ! (zero_ones | numerics | factors)
-    ignored <- ignored_type | all_na
+    all_na        <- unlist(lapply(x, function(y) all(is.na(y))))
+    ignored_type  <- ! (zero_ones | numerics | factors)
+    ignored       <- ignored_type | all_na
     ignored_names <- NULL
     if (any(ignored)){
         ignored_names <- names(x)[ignored]
@@ -654,13 +653,43 @@ univ_perc <- function(x,
 #'
 #' @param x a \code{data.frame}
 #' @param group a data.frame of 1 column
-#' @param analysis_name label prefix
 #' @param wb a WorkBook
-#' @param quant_test test for quantitative variables (biv_quant's test param)
-#' @param quali_test test for qualitative variables (biv_quali's test param)
+#' @param latex use latex for printing (default = TRUE)
+#' @param exclude character vector of data.frame name to be ignored
+#' @param style if 'raw' display variables in the order given, if
+#'     'type' display variable by type
+#' @param analysis_name label prefix
+#' @param date_preproc function to preprocess Date columns. By default
+#'     make them Year-month factors; currently only factor, numerics
+#'     and 0-1 variable are not ignored, therefore date_preproc should
+#'     be a coercer to those types
+#' @param biv_perc_params other options (named list) for biv_perc
+#' @param biv_quant_params other options (named list) for biv_quant
+#' @param biv_quali_params other options (named list) for biv_quali
 #' @export
-bivariate_tables <- function(x, group, analysis_name, wb,
-                             quant_test = 'none', quali_test = 'auto'){
+bivariate_tables <- function(x, group,
+                             wb = NULL,
+                             latex = TRUE,
+                             exclude = NULL,
+                             style = c('raw', 'type'),
+                             analysis_name = 'biv',
+                             date_preproc = function(d) factor(format(d, '%Y-%m')),
+                             biv_perc_params = list(),
+                             biv_quant_params = list(test = 'none'),
+                             biv_quali_params = list(test = 'auto')
+                             )
+{
+    stopifnot(is.data.frame(x) && all(dim(x) > 0L))
+    style <- match.arg(style)
+    
+    ## exclude
+    x <- x[, names(x) %without% exclude, drop = FALSE]
+
+    ## preprocess dates keeping comments
+    dates <- unlist(lapply(x, lbmisc::is.Date))
+    x[, dates] <- preprocess_dates(x[, dates, drop = FALSE], date_preproc)
+    
+    
     worker <- function(x,   # analyzed var
                        g,   # grouping var
                        xn,  # variable name
@@ -668,33 +697,37 @@ bivariate_tables <- function(x, group, analysis_name, wb,
                        analysis_name # overall name, for sheet
                        )
     {
-        ## print(class(x))
-        ## print(class(g))
-        ## print(xn)
-        ## print(gn)
-        ## print(analysis_name)
         sheet_name <- paste(analysis_name, gn, xn, sep = '_')
         label <- paste('tab', sheet_name, sep = ':')
         caption <- if (!is.null(comment(x))) comment(x) else ''
+        
         if (lbmisc::is.qualitative(x)) {
-            biv_quali(x = x, y = g, wb = wb, sheets = sheet_name,
-                      label = label, caption = caption,
-                      test = quali_test)
+            params <- c(list(x = x, y = g, wb = wb, sheets = sheet_name,
+                             latex = latex, label = label, caption = caption),
+                        biv_quali_params)
+            do.call(biv_quali, params)
         } else if (lbmisc::is.quantitative(x)) {
-            biv_quant(x = x, y = g, wb = wb, sheets = sheet_name,
-                      label = label, caption = caption,
-                      test = quant_test)
+            params <- c(list(x = x, y = g, wb = wb, sheets = sheet_name,
+                             latex = latex, label = label, caption = caption),
+                        biv_quant_params)
+            do.call(biv_quant, params)
+        } else if (all(is.na(x))) {
+            msg <- sprintf('%s: variabile con valori (tutti) missing. La salto.', xn)
+            warning(msg)
         } else {
             msg <- sprintf('%s: tipo variabile non contemplato. La salto.', xn)
             warning(msg)
         }
     }
-    invisible(Map(worker, 
-                  x, 
-                  list(group[, 1]), 
-                  as.list(names(x)),
-                  as.list(names(group)),
-                  list(analysis_name)))
+
+    if (style == 'raw') invisible(Map(worker, 
+                                      x, 
+                                      list(group[, 1]), 
+                                      as.list(names(x)),
+                                      as.list(names(group)),
+                                      list(analysis_name)))
+    else
+        stop("Not implemented yet")
 }
 
 
@@ -1149,4 +1182,13 @@ Table <- function(..., useNA = 'ifany', f = list('Sum' = sum),
     if (is.null(margin))
         margin <- seq_along(dim(tab))
     addmargins(tab, FUN = f, quiet = quiet, margin = margin)
+}
+
+
+## funzione per il preprocessng delle date per bivariate_tables
+## e univariate_tables
+preprocess_dates <- function(x, f){
+    comments <- lapply(x, comment)
+    x <- lapply(x, f)
+    Map(function(d, c) {comment(d) <- c; d}, as.list(x), comments)
 }

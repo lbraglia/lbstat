@@ -5,21 +5,38 @@
 \title{Dispatcher for (qualitative/quantitative) bivariate tables and
 statistics.}
 \usage{
-bivariate_tables(x, group, analysis_name, wb, quant_test = "none",
-  quali_test = "auto")
+bivariate_tables(x, group, wb = NULL, latex = TRUE, exclude = NULL,
+  style = c("raw", "type"), analysis_name = "biv",
+  date_preproc = function(d) factor(format(d, "\%Y-\%m")),
+  biv_perc_params = list(), biv_quant_params = list(test = "none"),
+  biv_quali_params = list(test = "auto"))
 }
 \arguments{
 \item{x}{a \code{data.frame}}
 
 \item{group}{a data.frame of 1 column}
 
-\item{analysis_name}{label prefix}
-
 \item{wb}{a WorkBook}
 
-\item{quant_test}{test for quantitative variables (biv_quant's test param)}
+\item{latex}{use latex for printing (default = TRUE)}
 
-\item{quali_test}{test for qualitative variables (biv_quali's test param)}
+\item{exclude}{character vector of data.frame name to be ignored}
+
+\item{style}{if 'raw' display variables in the order given, if
+'type' display variable by type}
+
+\item{analysis_name}{label prefix}
+
+\item{date_preproc}{function to preprocess Date columns. By default
+make them Year-month factors; currently only factor, numerics
+and 0-1 variable are not ignored, therefore date_preproc should
+be a coercer to those types}
+
+\item{biv_perc_params}{other options (named list) for biv_perc}
+
+\item{biv_quant_params}{other options (named list) for biv_quant}
+
+\item{biv_quali_params}{other options (named list) for biv_quali}
 }
 \description{
 Dispatcher for (qualitative/quantitative) bivariate tables and
