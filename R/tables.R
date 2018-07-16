@@ -112,7 +112,9 @@ get_comments <- function(x) {
 #' 
 #' @export
 univariate_tables <-
-    function(x, wb = NULL, latex = TRUE,
+    function(x,
+             wb = NULL,
+             latex = TRUE,
              exclude = NULL,
              style = c('raw', 'type'),
              date_preproc = function(d) factor(format(d, '%Y-%m')),
@@ -157,70 +159,34 @@ univariate_tables <-
     numerics_c  <- x_names[numerics]
     factors_c   <- x_names[factors]
 
+    mr_vars <- NULL
     if (!is.null(mr_prefixes)){
         mr_patterns <- paste0("^", mr_prefixes)
         mr_vars <- lapply(mr_patterns,
                           function(y) grep(y, x_names, value = TRUE))
         names(mr_vars) <- mr_prefixes
     }
-
+    
     ## sono arrivato qui
+    common_params <- list(wb = wb, latex = latex)
+    univ_perc_params  <- c(common_params, univ_perc_params)
+    univ_quant_params <- c(common_params, univ_quant_params)
+    univ_quali_params <- c(common_params, univ_quali_params)
     
     if (style == 'raw'){
-        for (varname in x_names){
-            if(varname %in% names(x)){
-                ## it may not be the case since x is modifyied by mr stuff
-                data <- x[, varname, drop = FALSE]
-                if (varname %in% zero_ones_c){
-                    if (!is.null(mr_prefixes)){
-                        ## check if it's a mr,
-                        ## consider the full dataset of related mr
-                        ## remove the other mr for the next cycle
-                        finder <- function(x) varname %in% x
-                        involved_mr <- Filter(finder, mr_vars)
-                        involved_prefix <- names(involved_mr)
-                        involved_mr <- unlist(involved_mr)
-                        ## adjust various data.frame
-                        if (length(involved_mr) > 0L){
-                            ## update data to include all mr
-                            data <- x[, involved_mr, drop = FALSE]
-                            ## set comment from varname
-                            rm_ptrn <- sprintf('^(%s)(.+)', involved_prefix)
-                            comments <- gsub(rm_ptrn, '\\2', involved_mr)
-                            clean <- function(x){
-                                x <- gsub('[\\._]', ' ', x)
-                                x <- rm_spaces(x)
-                            }
-                            set_com <- function(dat, com) {
-                                ## set and return
-                                com <- clean(com)
-                                comment(dat) <- com
-                                dat
-                            }
-                            data[, involved_mr] <- Map(set_com,
-                                                       data[, involved_mr, drop = FALSE],
-                                                       comments)
-
-                            univ_perc_params$caption <- clean(involved_prefix)
-                            ## rm these variables from the cycle
-                            x <- x[, names(x) %without% involved_mr, drop = FALSE]
-                        }
-                    }
-                    params <- c(list(x = as.data.frame(data),
-                                     wb = wb, latex = latex),
-                                univ_perc_params)
-                    do.call(univ_perc, params)
-                } else if (varname %in% numerics_c){
-                    params <- c(list(x = data, wb = wb, latex = latex),
-                                univ_quant_params)
-                    do.call(univ_quant, params)
-                } else if (varname %in% factors_c){
-                    params <- c(list(x = data, wb = wb, latex = latex),
-                                univ_quali_params)
-                    do.call(univ_quali, params)
-                }
-            }
-        }
+        raw_worker(x = x,
+                   zero_ones_c = zero_ones_c,
+                   numerics_c = numerics_c, 
+                   factors_c = factors_c,  
+                   mr_prefixes = mr_prefixes,
+                   mr_vars = mr_vars,
+                   perc_f = univ_perc,
+                   quant_f = univ_quant,
+                   quali_f = univ_quali,
+                   perc_f_params  = univ_perc_params, 
+                   quant_f_params = univ_quant_params, 
+                   quali_f_params = univ_quali_params)
+                   
     } else if (style == 'type') {
         if (any(zero_ones)) {
             data <- x[, zero_ones, drop = FALSE]
@@ -677,15 +643,15 @@ bivariate_tables <- function(x, group,
                              latex = TRUE,
                              exclude = NULL,
                              style = c('raw', 'type'),
-                             analysis_name = 'biv',
+                             analysis_name = '',
                              date_preproc = function(d) factor(format(d, '%Y-%m')),
                              mr_prefixes = NULL,
                              biv_perc_params = list(),
                              biv_quant_params = list(test = 'none'),
-                             biv_quali_params = list(test = 'auto')
-                             )
+                             biv_quali_params = list(test = 'auto'))
 {
     stopifnot(is.data.frame(x) && all(dim(x) > 0L))
+    stopifnot(is.data.frame(group) && ncol(group) == 1L)
     style <- match.arg(style)
     
     ## exclude
@@ -716,7 +682,7 @@ bivariate_tables <- function(x, group,
     }
 
     ## same pointed variables, but vector of chars names
-    x_names <- names(x)
+    x_names     <- names(x)
     zero_ones_c <- x_names[zero_ones]
     numerics_c  <- x_names[numerics]
     factors_c   <- x_names[factors]
@@ -729,48 +695,129 @@ bivariate_tables <- function(x, group,
     }
 
     ## sono arrivato qui
+    common_params <- list(wb = wb,
+                          latex = latex,
+                          y = group[, 1],
+                          yname = names(group))
+    biv_perc_params  <- c(common_params, biv_perc_params)
+    biv_quant_params <- c(common_params, biv_quant_params)
+    biv_quali_params <- c(common_params, biv_quali_params)
     
-    worker <- function(x,   # analyzed var
-                       g,   # grouping var
-                       xn,  # variable name
-                       gn,  # grouping var name
-                       analysis_name # overall name, for sheet
-                       )
-    {
-        sheet_name <- paste(analysis_name, gn, xn, sep = '_')
-        label <- paste('tab', sheet_name, sep = ':')
-        caption <- if (!is.null(comment(x))) comment(x) else ''
-        
-        if (lbmisc::is.qualitative(x)) {
-            params <- c(list(x = x, y = g, wb = wb, sheets = sheet_name,
-                             latex = latex, label = label, caption = caption),
-                        biv_quali_params)
-            do.call(biv_quali, params)
-        } else if (lbmisc::is.quantitative(x)) {
-            params <- c(list(x = x, y = g, wb = wb, sheets = sheet_name,
-                             latex = latex, label = label, caption = caption),
-                        biv_quant_params)
-            do.call(biv_quant, params)
-        } else if (all(is.na(x))) {
-            msg <- sprintf('%s: variabile con valori (tutti) missing. La salto.', xn)
-            warning(msg)
-        } else {
-            msg <- sprintf('%s: tipo variabile non contemplato. La salto.', xn)
-            warning(msg)
-        }
-    }
+    ## worker <- function(x,   # analyzed var
+    ##                    xn,  # variable name
+    ##                    gn,  # grouping var name
+    ##                    analysis_name # overall name, for sheet
+    ##                    )
+    ## {
+    ##     sheet_name <- if(analysis_name != '') paste(analysis_name, gn, xn, sep = '_')
+    ##                   else paste(gn, xn, sep = '_')
+    ##     label <- paste('tab', sheet_name, sep = ':')
+    ##     if (lbmisc::is.qualitative(x)) {
+    ##         params <- c(list(x = x, sheets = sheet_name, label = label), biv_quali_params)
+    ##         do.call(biv_quali, params)
+    ##     } else if (lbmisc::is.quantitative(x)) {
+    ##         params <- c(list(x = x, sheets = sheet_name, label = label), biv_quant_params)
+    ##         do.call(biv_quant, params)
+    ##     } else if (all(is.na(x))) {
+    ##         msg <- sprintf('%s: variabile con valori (tutti) missing. La salto.', xn)
+    ##         warning(msg)
+    ##     } else {
+    ##         msg <- sprintf('%s: tipo variabile non contemplato. La salto.', xn)
+    ##         warning(msg)
+    ##     }
+    ## }
 
-    if (style == 'raw') invisible(Map(worker, 
-                                      x, 
-                                      list(group[, 1]), 
-                                      as.list(names(x)),
-                                      as.list(names(group)),
-                                      list(analysis_name)))
-    else
-        stop("Not implemented yet")
+    if (style == 'raw') {
+        raw_worker(x = x,
+                   zero_ones_c = zero_ones_c,
+                   numerics_c = numerics_c, 
+                   factors_c = factors_c,  
+                   mr_prefixes = mr_prefixes,
+                   mr_vars = mr_vars,
+                   perc_f  = biv_perc,
+                   quant_f = biv_quant,
+                   quali_f = biv_quali,
+                   perc_f_params  = biv_perc_params, 
+                   quant_f_params = biv_quant_params, 
+                   quali_f_params = biv_quali_params)
+        ## invisible(Map(worker, 
+        ##                               x, 
+        ##                               as.list(names(x)),
+        ##                               as.list(names(group)),
+        ##                               list(analysis_name)))
+    } else  stop("Not implemented yet")
 
     invisible(ignored)
 }
+
+
+raw_worker <- function(x, ## dataset
+                       zero_ones_c,
+                       numerics_c, 
+                       factors_c,  
+                       mr_prefixes,
+                       mr_vars,
+                       perc_f,        #eg=univ_perc 
+                       quant_f,       #eg=univ_quant
+                       quali_f,       #eg=univ_quali
+                       perc_f_params, #eg=univ_perc_params
+                       quant_f_params,#eg=univ_quant_params
+                       quali_f_params #eg=univ_quali_params
+                       )
+{
+    x_names <- names(x)
+    for (varname in x_names){
+        if(varname %in% names(x)){
+            ## it may not be the case since x is modifyied by mr stuff
+            data <- x[, varname, drop = FALSE]
+            if (varname %in% zero_ones_c){
+                if (!is.null(mr_prefixes)){
+                    ## check if it's a mr,
+                    ## consider the full dataset of related mr
+                    ## remove the other mr for the next cycle
+                    finder <- function(x) varname %in% x
+                    involved_mr <- Filter(finder, mr_vars)
+                    involved_prefix <- names(involved_mr)
+                    involved_mr <- unlist(involved_mr)
+                    ## adjust various data.frame
+                    if (length(involved_mr) > 0L){
+                        ## update data to include all mr
+                        data <- x[, involved_mr, drop = FALSE]
+                        ## set comment from varname
+                        rm_ptrn <- sprintf('^(%s)(.+)', involved_prefix)
+                        comments <- gsub(rm_ptrn, '\\2', involved_mr)
+                        clean <- function(x){
+                            x <- gsub('[\\._]', ' ', x)
+                            x <- rm_spaces(x)
+                        }
+                        set_com <- function(dat, com) {
+                            ## set and return
+                            com <- clean(com)
+                            comment(dat) <- com
+                            dat
+                        }
+                        data[, involved_mr] <- Map(set_com,
+                                                   data[, involved_mr, drop = FALSE],
+                                                   comments)
+                        
+                        perc_f_params$caption <- clean(involved_prefix)
+                        ## rm these variables from the cycle
+                        x <- x[, names(x) %without% involved_mr, drop = FALSE]
+                    }
+                }
+                params <- c(list(x = as.data.frame(data)), perc_f_params)
+                do.call(perc_f, params)
+            } else if (varname %in% numerics_c){
+                params <- c(list(x = data), quant_f_params)
+                do.call(quant_f, params)
+            } else if (varname %in% factors_c){
+                params <- c(list(x = data), quali_f_params)
+                do.call(quali_f, params)
+            }
+        }
+    }
+}
+
 
 
 
@@ -780,6 +827,8 @@ bivariate_tables <- function(x, group,
 #'     character or a factor
 #' @param y column variable: a discrete quantitative variable, a
 #'     character or a factor
+#' @param xname a string used to identify x variable (used for latex captions and excel sheets)
+#' @param yname a string used to identify x variable (used for latex captions and excel sheets)
 #' @param totals print totals?
 #' @param tot_row_label label for rows total
 #' @param tot_col_label label for columns total
@@ -813,6 +862,8 @@ bivariate_tables <- function(x, group,
 #' @export
 biv_quali <- function(x = NULL,
                       y = NULL,
+                      xname = NULL,
+                      yname = NULL,
                       totals = TRUE,
                       tot_row_label = 'Tot',
                       tot_col_label = 'Tot',
@@ -831,14 +882,30 @@ biv_quali <- function(x = NULL,
                       wb = NULL,
                       sheets = NULL)
 {
-    xname <- gsub('^.+\\$', '', deparse(substitute(x)))
-    yname <- gsub('^.+\\$', '', deparse(substitute(y)))
-    varnames <- strtrim(paste(xname, yname, sep = '_'), 31)
+    test <- match.arg(test)
+
+    ## handle 1 col data.frame
+    one_col_x <- is.data.frame(x) && ncol(x) == 1L
+    one_col_y <- is.data.frame(y) && ncol(y) == 1L
+
+    if (one_col_x){
+        if (is.null(xname)) xname <- names(x)
+        x <- x[, 1]
+    }
+
+    if (one_col_y){
+        if (is.null(yname)) yname <- names(y)
+        y <- y[, 1]
+    }
+    
+    if (is.null(xname)) xname <- gsub('^.+\\$', '', deparse(substitute(x)))[1L]## for safeness
+    if (is.null(yname)) yname <- gsub('^.+\\$', '', deparse(substitute(y)))[1L]## for safeness 
+    varnames <- strtrim(paste(yname, xname, sep = '_'), 31)
     
     if (is.null(label))
-        label <- ''
+        label <- paste('tab', varnames, sep = ':')
     if (is.null(caption))
-        caption <- ''
+        caption <- if (!is.null(comment(x))) comment(x) else ''
     if (is.null(sheets))
         sheets <- ''
 
@@ -984,6 +1051,8 @@ biv_quali <- function(x = NULL,
 #' 
 #' @param x a quantitative variable
 #' @param y a discrete quantitative variable, a character or a factor
+#' @param xname a string used to identify x variable (used for latex captions and excel sheets)
+#' @param yname a string used to identify x variable (used for latex captions and excel sheets)
 #' @param na.rm exclude missing value group for y
 #' @param add_all add "All" row
 #' @param test one of \code{'none'}, \code{'anova'}, or \code{'kruskal.test'}
@@ -997,6 +1066,8 @@ biv_quali <- function(x = NULL,
 #'     tables)
 #' @export
 biv_quant <- function(x, y,
+                      xname = NULL,
+                      yname = NULL,
                       na.rm = FALSE,
                       add_all = TRUE,
                       test = c('none', 'anova', 'kruskal.test'),
@@ -1007,15 +1078,30 @@ biv_quant <- function(x, y,
                       wb = NULL,
                       sheets = NULL)
 {
-    xname <- gsub('^.+\\$', '', deparse(substitute(x)))
-    yname <- gsub('^.+\\$', '', deparse(substitute(y)))
-    varnames <- strtrim(paste(xname, yname, sep = '_'), 31)
     test <- match.arg(test)
+
+    ## handle 1 col data.frame
+    one_col_x <- is.data.frame(x) && ncol(x) == 1L
+    one_col_y <- is.data.frame(y) && ncol(y) == 1L
+
+    if (one_col_x){
+        if (is.null(xname)) xname <- names(x)
+        x <- x[, 1]
+    }
+
+    if (one_col_y){
+        if (is.null(yname)) yname <- names(y)
+        y <- y[, 1]
+    }
+    
+    if (is.null(xname)) xname <- gsub('^.+\\$', '', deparse(substitute(x)))[1L]## for safeness
+    if (is.null(yname)) yname <- gsub('^.+\\$', '', deparse(substitute(y)))[1L]## for safeness
+    varnames <- strtrim(paste(yname, xname, sep = '_'), 31)
     
     if (is.null(label))
-        label <- ''
+        label <- paste('tab', varnames, sep = ':')
     if (is.null(caption))
-        caption <- ''
+        caption <- if (!is.null(comment(x))) comment(x) else ''
     if (is.null(sheets))
         sheets <- ''
 
@@ -1096,15 +1182,53 @@ biv_quant <- function(x, y,
 #'     variable or the last level for factors for x
 #' @param only_non_zero_perc print only non zero percentages rows
 #' @param ordered decreasing frequencies ordered table
+#' @param latex output the table using \code{xtable::xtable}
+#' @param latex_placement table placement for latex printing
+#' @param label latex label
+#' @param caption latex caption
 #' @param wb an openxlsx Workbook; if not NULL the table will be saved
 #'     in the workbook too, aside printing
 #' @param sheets optional sheet names
 #' @export
 biv_perc <- function(x, y,
+                     xname = NULL,
+                     yname = NULL,
                      collapse_binary_x = FALSE,
                      only_non_zero_perc = FALSE,
                      ordered = FALSE,
-                     wb = NULL, sheets = NULL){
+                     latex = TRUE,
+                     latex_placement = 'ht',
+                     label = NULL,
+                     caption = NULL,
+                     wb = NULL,
+                     sheets = NULL)
+{
+
+    ## ## handle 1 col data.frame
+    ## one_col_x <- is.data.frame(x) && ncol(x) == 1L
+    ## one_col_y <- is.data.frame(y) && ncol(y) == 1L
+
+    ## if (one_col_x){
+    ##     if (is.null(xname)) xname <- names(x)
+    ##     x <- x[, 1]
+    ## }
+
+    ## if (one_col_y){
+    ##     if (is.null(yname)) yname <- names(y)
+    ##     y <- y[, 1]
+    ## }
+    
+    if (is.null(xname)) xname <- gsub('^.+\\$', '', deparse(substitute(x)))[1L]## for safeness
+    if (is.null(yname)) yname <- gsub('^.+\\$', '', deparse(substitute(y)))[1L]## for safeness
+    varnames <- strtrim(paste(yname, xname, sep = '_'), 31)
+    
+    if (is.null(label))
+        label <- paste('tab', varnames, sep = ':')
+    if (is.null(caption))
+        caption <- if (!is.null(comment(x))) comment(x) else ''
+    if (is.null(sheets))
+        sheets <- ''
+    
     ## browser()
     ## comunque nel seguito ci si aspetta che y sia un data.frame
     ## per splitting e simili, quindi normalizziamo
@@ -1134,9 +1258,9 @@ biv_perc <- function(x, y,
     ## il contatore conta degli 0 e degli 1
     the_counter <- function(x){
         stopifnot(all(x %in% c(0, 1, NA)))
-        n = sum(!is.na(x))
-        p = sum(x, na.rm = TRUE)
-        perc = (p/n)*100
+        n <- sum(!is.na(x))
+        p <- sum(x, na.rm = TRUE)
+        perc <- (p/n)*100
         data.frame(n, p,  perc)
     }
     has_two_levels <- function(x) {
@@ -1157,7 +1281,7 @@ biv_perc <- function(x, y,
                        } else ## se più di due livelli splitta
                            split(y, f = x)
         ## Applicare la funzione di conta per ogni gruppo
-        res <-  lapply(analysis_dbs,
+        rval <-  lapply(analysis_dbs,
                        function(g) # per ogni gruppo (ossia modalita)
                            do.call(rbind, 
                                    ## per ogni variabile entro ogni
@@ -1166,7 +1290,7 @@ biv_perc <- function(x, y,
     } else if (dimx[2] > 1){ # x è dataframe
         ## a turno per ogni colonna di x splittare la y in base alla x
         ## in questo modo group è una variabile
-        res <- lapply(x, function(xvar){
+        rval <- lapply(x, function(xvar){
             analysis_dbs <- 
                 if (has_two_levels(xvar) && collapse_binary_x){
                     ## fai il subset del gruppo di interesse gestendo e
@@ -1191,13 +1315,50 @@ biv_perc <- function(x, y,
     } else stop('x deve essere una variabile o un dataframe')
     ## tengo solo le righe dove si ha almeno una corrispondenza per pulire
     ## l'output e ordino per frequenze decrescenti
-    res <- do.call(rbind, res)
-    if (only_non_zero_perc) res <- res[res$p > 0, ]
-    if (ordered) res <- res[with(res, order(n, p, decreasing = TRUE)), ]
-    if (!(is.null(wb) || is.null(sheets)))
-        lbmisc::add_to_wb(wb = wb, sheet = strtrim(sheets, 31),
-                  x = res, rowNames = TRUE)
-    res
+    rval <- do.call(rbind, rval)
+    if (only_non_zero_perc) rval <- rval[rval$p > 0, ]
+    if (ordered) rval <- rval[with(rval, order(n, p, decreasing = TRUE)), ]
+
+    ## Workbook handling
+    if (methods::is(wb, "Workbook")){
+        xlsx_table(rval,
+                   test_df = NULL,
+                   wb,
+                   sheets,
+                   ## label,
+                   caption,
+                   varnames)
+    }
+
+    ## output
+    if (latex){
+        ## if (perc) {
+        ##     ## alternate 0,2 for number of columns/2
+        ##     digits <- rep(c(0,2), ncol(rval)/2)
+        ## } else {
+        ##     ## no percentages, all integers
+        ##     digits <- rep(0L, ncol(rval))
+        ## }
+        xt <- xtable::xtable(rval,
+                             ## align = 'todo',
+                             ## digits = c(0, digits),
+                             label = label,
+                             caption = caption)
+        xtable::print.xtable(xt, table.placement = latex_placement)
+        invisible(rval)
+    } else {
+        ## normal printing
+        message(caption)
+        print(rval)
+        invisible(rval)
+    }
+    
+    ## if (!(is.null(wb) || sheets == ''))
+    ##     lbmisc::add_to_wb(wb = wb,
+    ##                       sheet = strtrim(sheets, 31),
+    ##                       x = rval,
+    ##                       rowNames = TRUE)
+    ## res
 }
 
 
