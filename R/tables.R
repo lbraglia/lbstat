@@ -525,6 +525,7 @@ univ_quali_latex_printer <- function(y,
 #'     all composed of 0-1 variables)
 #' @param sort_freq sort by frequencies (descending)?
 #' @param latex output the table using \code{xtable::xtable}
+#' @param latex_placement table placement for latex printing
 #' @param label latex label
 #' @param caption latex caption
 #' @param use_comments use comments for row (variable) names, if available
@@ -538,8 +539,9 @@ univ_quali_latex_printer <- function(y,
 #' univ_perc(x = data)
 #' @export
 univ_perc <- function(x,
-                      sort_freq = FALSE,
+                      sort_freq = TRUE,
                       latex = TRUE,
+                      latex_placement = 'ht',
                       label = NULL,
                       caption = NULL,
                       use_comments = TRUE,
@@ -579,7 +581,7 @@ univ_perc <- function(x,
 
     rownames(rval) <- gsub('_', ' ', rownames(rval))
     if (sort_freq){
-        rval <- rval[order(- rval[,1]), ]
+        rval <- rval[order(- rval[, 1]), , drop = FALSE]
     }
     
     varnames <- strtrim(paste(rownames(rval), collapse = '_'), 31)
@@ -600,11 +602,10 @@ univ_perc <- function(x,
         tmp <- rval
         rownames(tmp) <- strtrim(rownames(tmp), width = 32)
         xtab <- xtable::xtable(tmp,
-                               ## align = 'cc',
                                digits = c(0, 0, 2),
                                caption = caption,
                                label = label)
-        xtable::print.xtable(xtab)
+        xtable::print.xtable(xtab, table.placement = latex_placement)
         invisible(rval)
     } else {
         return(rval)
@@ -695,37 +696,10 @@ bivariate_tables <- function(x, group,
     }
 
     ## sono arrivato qui
-    common_params <- list(wb = wb,
-                          latex = latex,
-                          y = group[, 1],
-                          yname = names(group))
+    common_params <- list(wb = wb, latex = latex, y = group[, 1], yname = names(group))
     biv_perc_params  <- c(common_params, biv_perc_params)
     biv_quant_params <- c(common_params, biv_quant_params)
     biv_quali_params <- c(common_params, biv_quali_params)
-    
-    ## worker <- function(x,   # analyzed var
-    ##                    xn,  # variable name
-    ##                    gn,  # grouping var name
-    ##                    analysis_name # overall name, for sheet
-    ##                    )
-    ## {
-    ##     sheet_name <- if(analysis_name != '') paste(analysis_name, gn, xn, sep = '_')
-    ##                   else paste(gn, xn, sep = '_')
-    ##     label <- paste('tab', sheet_name, sep = ':')
-    ##     if (lbmisc::is.qualitative(x)) {
-    ##         params <- c(list(x = x, sheets = sheet_name, label = label), biv_quali_params)
-    ##         do.call(biv_quali, params)
-    ##     } else if (lbmisc::is.quantitative(x)) {
-    ##         params <- c(list(x = x, sheets = sheet_name, label = label), biv_quant_params)
-    ##         do.call(biv_quant, params)
-    ##     } else if (all(is.na(x))) {
-    ##         msg <- sprintf('%s: variabile con valori (tutti) missing. La salto.', xn)
-    ##         warning(msg)
-    ##     } else {
-    ##         msg <- sprintf('%s: tipo variabile non contemplato. La salto.', xn)
-    ##         warning(msg)
-    ##     }
-    ## }
 
     if (style == 'raw') {
         raw_worker(x = x,
@@ -734,18 +708,14 @@ bivariate_tables <- function(x, group,
                    factors_c = factors_c,  
                    mr_prefixes = mr_prefixes,
                    mr_vars = mr_vars,
-                   perc_f  = biv_perc,
+                   perc_f  = biv_mr,
                    quant_f = biv_quant,
                    quali_f = biv_quali,
                    perc_f_params  = biv_perc_params, 
                    quant_f_params = biv_quant_params, 
                    quali_f_params = biv_quali_params)
-        ## invisible(Map(worker, 
-        ##                               x, 
-        ##                               as.list(names(x)),
-        ##                               as.list(names(group)),
-        ##                               list(analysis_name)))
-    } else  stop("Not implemented yet")
+    } else
+        stop("Not implemented yet")
 
     invisible(ignored)
 }
@@ -1171,8 +1141,8 @@ biv_quant <- function(x, y,
 
 #' Percentages table for 0-1 variables
 #'
-#' Previously called \code{univ_mr} (for multiple responses) the function make
-#' descriptive statistics (n, percentages) for 0-1 variables
+#' The function make descriptive statistics (n, percentages) for 0-1
+#' (or factor) y variables stratifying for the x variable
 #' 
 #' @param x a single qualitative variable or a data.frame of
 #'     qualitative variable
@@ -1181,6 +1151,7 @@ biv_quant <- function(x, y,
 #' @param collapse_binary_x regarding x, keep in row only the 1 in 0-1
 #'     variable or the last level for factors for x
 #' @param only_non_zero_perc print only non zero percentages rows
+#' @param style print different groups in different columns
 #' @param ordered decreasing frequencies ordered table
 #' @param latex output the table using \code{xtable::xtable}
 #' @param latex_placement table placement for latex printing
@@ -1190,11 +1161,13 @@ biv_quant <- function(x, y,
 #'     in the workbook too, aside printing
 #' @param sheets optional sheet names
 #' @export
-biv_perc <- function(x, y,
+biv_perc <- function(x = NULL,
+                     y = NULL,
                      xname = NULL,
                      yname = NULL,
                      collapse_binary_x = FALSE,
                      only_non_zero_perc = FALSE,
+                     style = c('long', 'wide'),
                      ordered = FALSE,
                      latex = TRUE,
                      latex_placement = 'ht',
@@ -1204,20 +1177,7 @@ biv_perc <- function(x, y,
                      sheets = NULL)
 {
 
-    ## ## handle 1 col data.frame
-    ## one_col_x <- is.data.frame(x) && ncol(x) == 1L
-    ## one_col_y <- is.data.frame(y) && ncol(y) == 1L
-
-    ## if (one_col_x){
-    ##     if (is.null(xname)) xname <- names(x)
-    ##     x <- x[, 1]
-    ## }
-
-    ## if (one_col_y){
-    ##     if (is.null(yname)) yname <- names(y)
-    ##     y <- y[, 1]
-    ## }
-    
+    style <- match.arg(style)
     if (is.null(xname)) xname <- gsub('^.+\\$', '', deparse(substitute(x)))[1L]## for safeness
     if (is.null(yname)) yname <- gsub('^.+\\$', '', deparse(substitute(y)))[1L]## for safeness
     varnames <- strtrim(paste(yname, xname, sep = '_'), 31)
@@ -1258,10 +1218,10 @@ biv_perc <- function(x, y,
     ## il contatore conta degli 0 e degli 1
     the_counter <- function(x){
         stopifnot(all(x %in% c(0, 1, NA)))
-        n <- sum(!is.na(x))
-        p <- sum(x, na.rm = TRUE)
-        perc <- (p/n)*100
-        data.frame(n, p,  perc)
+        N <- sum(!is.na(x))
+        n <- sum(x, na.rm = TRUE)
+        perc <- (n/N)*100
+        data.frame(N, n,  perc)
     }
     has_two_levels <- function(x) {
         x <- x %without% NA
@@ -1313,12 +1273,39 @@ biv_perc <- function(x, y,
         ## da qui ne esce una lista con un elemento per ogni variabile x, che
         ## andiamo a collassare per avere un unico data.frame in seguito
     } else stop('x deve essere una variabile o un dataframe')
+
     ## tengo solo le righe dove si ha almeno una corrispondenza per pulire
     ## l'output e ordino per frequenze decrescenti
-    rval <- do.call(rbind, rval)
-    if (only_non_zero_perc) rval <- rval[rval$p > 0, ]
-    if (ordered) rval <- rval[with(rval, order(n, p, decreasing = TRUE)), ]
-
+    if (only_non_zero_perc) rval <- lapply(rval, function(r) r[r$n > 0, ])
+    if (ordered) rval <- lapply(rval, function(r) r[with(r, order(N, n, decreasing = TRUE)), ])
+    ## e ora metto tutto assieme
+    if (style == 'long') {
+        rval <- do.call(rbind, rval)
+        ## rowname as first column
+        rval <- cbind(data.frame(gsub("\\.", " - ", rownames(rval))), rval)
+        rownames(rval) <- NULL
+        names(rval)[1] <- ""
+    } else {
+        ## cbind, filling for na
+        max_nrow <- max(unlist(lapply(rval, nrow)))
+        ## fill for na
+        rval <- lapply(rval, function(x){
+            original_rownames <- rownames(x)
+            ## add missing
+            if (nrow(x) < max_nrow) x[max_nrow, ] <- NA
+            ## now handle rownames making them the first column
+            x <- cbind(data.frame("rn" = rownames(x)), x)
+            ## clean some autogenerated rownames (numbers)
+            x[x$rn %nin% original_rownames , "rn"] <- NA
+            rownames(x) <- NULL
+            x
+        })
+        rval <- do.call(cbind, rval)
+        names(rval) <- gsub("\\.", " - ", names(rval))
+        ## ora togli il nome della prima colonna ogni 4 (blocco unico) che è di scarto
+        names(rval)[seq(1, ncol(rval), by = 4)] <- ""
+    }
+    
     ## Workbook handling
     if (methods::is(wb, "Workbook")){
         xlsx_table(rval,
@@ -1332,19 +1319,14 @@ biv_perc <- function(x, y,
 
     ## output
     if (latex){
-        ## if (perc) {
-        ##     ## alternate 0,2 for number of columns/2
-        ##     digits <- rep(c(0,2), ncol(rval)/2)
-        ## } else {
-        ##     ## no percentages, all integers
-        ##     digits <- rep(0L, ncol(rval))
-        ## }
         xt <- xtable::xtable(rval,
                              ## align = 'todo',
                              ## digits = c(0, digits),
                              label = label,
                              caption = caption)
-        xtable::print.xtable(xt, table.placement = latex_placement)
+        xtable::print.xtable(xt,
+                             include.rownames = FALSE,
+                             table.placement = latex_placement)
         invisible(rval)
     } else {
         ## normal printing
@@ -1352,14 +1334,39 @@ biv_perc <- function(x, y,
         print(rval)
         invisible(rval)
     }
-    
-    ## if (!(is.null(wb) || sheets == ''))
-    ##     lbmisc::add_to_wb(wb = wb,
-    ##                       sheet = strtrim(sheets, 31),
-    ##                       x = rval,
-    ##                       rowNames = TRUE)
-    ## res
+
 }
+
+
+#' A wrapper around biv_perc lightly optimized for multiple response
+#'
+#' @param mr_prefix the single multiple response
+#' @param ... other parameters passed to biv_perc with exception of ordered (TRUE) and
+#' only_non_zero_perc (TRUE)
+#' @export
+biv_mr <- function(mr_prefix = '', ...){
+    ## clean prefix from the data.frame
+    dots <- list(...)
+    x <- dots$x
+    y <- dots$y
+    clean_names <- function(z) {
+        ## remove mr prefixes
+        z <- gsub(mr_prefix[1], '', z)
+        ## replace underscore with spaces
+        z <- gsub("_", " ", z)
+        ## remove duplicate spaces or trailing/ending spaces
+        z <- lbmisc::rm_spaces(z)
+        z
+    }
+    names(x) <- clean_names(names(x))
+    names(y) <- clean_names(names(y))
+    dots$y <- y
+    dots$x <- x
+    params <- list(ordered = TRUE, only_non_zero_perc = TRUE, style = 'wide')
+    do.call(biv_perc, c(params, dots))
+}
+
+
 
 
 
