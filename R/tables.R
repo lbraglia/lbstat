@@ -14,7 +14,7 @@ xlsx_caption <- function(x){
 ##
 ## helper for exporting tables ... very raw for now
 ##
-xlsx_table <- function(tab, test_df, wb, sheet, caption, varname)
+xlsx_table <- function(tab, test_df, wb, sheet, caption, varname, rowNames = TRUE)
 {
 
     if (sheet == '')
@@ -45,7 +45,7 @@ xlsx_table <- function(tab, test_df, wb, sheet, caption, varname)
         next_row <- 1
     
     ## data
-    openxlsx::writeData(wb = wb, sheet = sheet, x = tab, rowNames = TRUE,
+    openxlsx::writeData(wb = wb, sheet = sheet, x = tab, rowNames = rowNames,
                         startRow = next_row)
     this_table_rows <- nrow(tab) + 1 ## +1 for table header
     next_row <- next_row + this_table_rows + spacing
@@ -634,7 +634,8 @@ univ_perc <- function(x,
 #'     be a coercer to those types
 #' @param mr_prefixes variable name prefixes (character vector); each
 #'     of these identify a set of variable who belong to the same
-#'     multiple response question
+#'     multiple response question (if done with smarty_mr_splitter
+#'     this should end with "_")
 #' @param biv_perc_params other options (named list) for biv_perc
 #' @param biv_quant_params other options (named list) for biv_quant
 #' @param biv_quali_params other options (named list) for biv_quali
@@ -666,10 +667,11 @@ bivariate_tables <- function(x, group,
     zero_ones <- unlist(lapply(x, lbmisc::is.percentage))
     numerics  <- unlist(lapply(x, lbmisc::is.quantitative))
     factors   <- unlist(lapply(x, lbmisc::is.qualitative))
+    mr        <- names(x) %in% gsub("_$", "", mr_prefixes)
 
     ## check variables to be ignored
     all_na        <- unlist(lapply(x, function(y) all(is.na(y))))
-    ignored_type  <- ! (zero_ones | numerics | factors)
+    ignored_type  <- ! (zero_ones | numerics | factors | mr)
     ignored       <- ignored_type | all_na
     ignored_names <- NULL
     if (any(ignored)){
@@ -689,6 +691,8 @@ bivariate_tables <- function(x, group,
     factors_c   <- x_names[factors]
 
     if (!is.null(mr_prefixes)){
+        ## per dopo è meglio aggiungere anche il _ finale prodotto da
+        ## smarty_mr_splitter di separazione
         mr_patterns <- paste0("^", mr_prefixes)
         mr_vars <- lapply(mr_patterns,
                           function(y) grep(y, x_names, value = TRUE))
@@ -696,7 +700,9 @@ bivariate_tables <- function(x, group,
     }
 
     ## sono arrivato qui
-    common_params <- list(wb = wb, latex = latex, y = group[, 1], yname = names(group))
+    common_params <- list(wb = wb, latex = latex,
+                          y = group[, 1],
+                          yname = names(group))
     biv_perc_params  <- c(common_params, biv_perc_params)
     biv_quant_params <- c(common_params, biv_quant_params)
     biv_quali_params <- c(common_params, biv_quali_params)
@@ -775,7 +781,9 @@ raw_worker <- function(x, ## dataset
                         x <- x[, names(x) %without% involved_mr, drop = FALSE]
                     }
                 }
-                params <- c(list(x = as.data.frame(data)), perc_f_params)
+                ## TODOHERE
+                params <- c(list(x = as.data.frame(data), mr_prefix = involved_prefix),
+                            perc_f_params)
                 do.call(perc_f, params)
             } else if (varname %in% numerics_c){
                 params <- c(list(x = data), quant_f_params)
@@ -1142,14 +1150,14 @@ biv_quant <- function(x, y,
 #' Percentages table for 0-1 variables
 #'
 #' The function make descriptive statistics (n, percentages) for 0-1
-#' (or factor) y variables stratifying for the x variable
+#' (or factor) x variables stratifying for the y variable
 #' 
-#' @param x a single qualitative variable or a data.frame of
+#' @param x a single quantitative variable or a data.frame of
 #'     qualitative variable
 #' @param y a single qualitative variable or a data.frame of
 #'     qualitative variable
-#' @param collapse_binary_x regarding x, keep in row only the 1 in 0-1
-#'     variable or the last level for factors for x
+#' @param collapse_binary_y regarding y, keep in row only the 1 in 0-1
+#'     variable or the last level for factors
 #' @param only_non_zero_perc print only non zero percentages rows
 #' @param style print different groups in different columns
 #' @param ordered decreasing frequencies ordered table
@@ -1165,7 +1173,7 @@ biv_perc <- function(x = NULL,
                      y = NULL,
                      xname = NULL,
                      yname = NULL,
-                     collapse_binary_x = FALSE,
+                     collapse_binary_y = FALSE,
                      only_non_zero_perc = FALSE,
                      style = c('long', 'wide'),
                      ordered = FALSE,
@@ -1180,7 +1188,7 @@ biv_perc <- function(x = NULL,
     style <- match.arg(style)
     if (is.null(xname)) xname <- gsub('^.+\\$', '', deparse(substitute(x)))[1L]## for safeness
     if (is.null(yname)) yname <- gsub('^.+\\$', '', deparse(substitute(y)))[1L]## for safeness
-    varnames <- strtrim(paste(yname, xname, sep = '_'), 31)
+    varnames <- strtrim(paste(xname, yname, sep = '_'), 31)
     
     if (is.null(label))
         label <- paste('tab', varnames, sep = ':')
@@ -1192,7 +1200,7 @@ biv_perc <- function(x = NULL,
     ## browser()
     ## comunque nel seguito ci si aspetta che y sia un data.frame
     ## per splitting e simili, quindi normalizziamo
-    y <- as.data.frame(y)
+    x <- as.data.frame(x)
     ## y deve essere a due livelli e viene calcolata la percentuale del 
     ## livello piu alto, alternativamente utilizzare dummify
     defactorize <- function(f){
@@ -1200,20 +1208,20 @@ biv_perc <- function(x = NULL,
         else if (nlevels(f) == 2L) as.integer(f) - 1
         else lbmisc::dummify(if (anyNA(f)) addNA(f) else f)
     }
-    y <- lapply(y, defactorize)
-    y <- if (length(y) > 1) as.data.frame(do.call(cbind, y))
-         else data.frame(y[[1]])
+    x <- lapply(x, defactorize)
+    x <- if (length(x) > 1) as.data.frame(do.call(cbind, x))
+         else data.frame(x[[1]])
     ## normalizzo gli x rappresentati da un data.frame di una
     ## variabile ad una variabile
-    if (!is.null(dim(x)) && ncol(x) == 1L) x <- x[, 1]
-    ## per vari motivi assumiamo che nel seguito x
+    if (!is.null(dim(y)) && ncol(y) == 1L) y <- y[, 1]
+    ## per vari motivi assumiamo che nel seguito y
     ## sia un factor
-    dimx <- dim(x)
-    x <- if (is.null(dimx)) as.factor(x)
+    dimy <- dim(y)
+    y <- if (is.null(dimy)) as.factor(y)
          else {
-             x <- lapply(x, factor)
-             if (length(x) > 1) do.call(cbind.data.frame, x)
-             else data.frame(x[[1]])
+             y <- lapply(y, factor)
+             if (length(y) > 1) do.call(cbind.data.frame, y)
+             else data.frame(y[[1]])
          }
     ## il contatore conta degli 0 e degli 1
     the_counter <- function(x){
@@ -1230,37 +1238,37 @@ biv_perc <- function(x = NULL,
     }
     ## browser()
     ## l'analisi varia a seconda che x sia una variabile o un dataframe
-    if(is.null(dimx)){ # x è variabile
-        ## se i livelli di x sono solo 2 (e si è specificato
-        ## collapse_binary_x) non splittare ma considera l'1 o 
+    if(is.null(dimy)){ # y è variabile
+        ## se i livelli di y sono solo 2 (e si è specificato
+        ## collapse_binary_y) non splittare ma considera l'1 o 
         ## il livello più alto, altrimenti splitta
-        analysis_dbs <- if (has_two_levels(x) && collapse_binary_x){
+        analysis_dbs <- if (has_two_levels(y) && collapse_binary_y){
                             ## se solo due livelli
-                            selector <- if (is.numeric(x)) 1 else levels(x)[2]
-                            list(y[x %in% selector, , drop = FALSE])
+                            selector <- if (is.numeric(y)) 1 else levels(y)[2]
+                            list(x[y %in% selector, , drop = FALSE])
                        } else ## se più di due livelli splitta
-                           split(y, f = x)
+                           split(x, f = y)
         ## Applicare la funzione di conta per ogni gruppo
         rval <-  lapply(analysis_dbs,
-                       function(g) # per ogni gruppo (ossia modalita)
-                           do.call(rbind, 
-                                   ## per ogni variabile entro ogni
-                                   ## modalita fai la conta
-                                   lapply(g, function (v) the_counter(v))))
-    } else if (dimx[2] > 1){ # x è dataframe
-        ## a turno per ogni colonna di x splittare la y in base alla x
+                        function(g) # per ogni gruppo (ossia modalita)
+                            do.call(rbind, 
+                                    ## per ogni variabile entro ogni
+                                    ## modalita fai la conta
+                                    lapply(g, function (v) the_counter(v))))
+    } else if (dimy[2] > 1){ # y è dataframe
+        ## a turno per ogni colonna di y splittare la x in base alla y
         ## in questo modo group è una variabile
-        rval <- lapply(x, function(xvar){
+        rval <- lapply(y, function(yvar){
             analysis_dbs <- 
-                if (has_two_levels(xvar) && collapse_binary_x){
+                if (has_two_levels(yvar) && collapse_binary_y){
                     ## fai il subset del gruppo di interesse gestendo e
-                    selector <- if (is.numeric(xvar)) 1L else levels(xvar)[2]
-                    ## dato che y dovrebbe essere sempre un data.frame...
-                    ## if (is.data.frame(y))
-                    list(y[xvar %in% selector, , drop = FALSE])
+                    selector <- if (is.numeric(yvar)) 1L else levels(yvar)[2]
+                    ## dato che x dovrebbe essere sempre un data.frame...
+                    ## if (is.data.frame(x))
+                    list(x[yvar %in% selector, , drop = FALSE])
                     ## else list(data.frame(y[xvar %in% selector]))
                 } else { ## se più di due livelli splitta
-                    split(y, f = xvar)
+                    split(x, f = yvar)
                 }
             ## per ogni dataset così splittato
             do.call(rbind, lapply(analysis_dbs, function(single_dataset){
@@ -1314,7 +1322,8 @@ biv_perc <- function(x = NULL,
                    sheets,
                    ## label,
                    caption,
-                   varnames)
+                   varnames,
+                   rowNames = FALSE)
     }
 
     ## output
@@ -1341,8 +1350,8 @@ biv_perc <- function(x = NULL,
 #' A wrapper around biv_perc lightly optimized for multiple response
 #'
 #' @param mr_prefix the single multiple response
-#' @param ... other parameters passed to biv_perc with exception of ordered (TRUE) and
-#' only_non_zero_perc (TRUE)
+#' @param ... other parameters passed to biv_perc with exception of
+#' ordered (TRUE) and only_non_zero_perc (TRUE)
 #' @export
 biv_mr <- function(mr_prefix = '', ...){
     ## clean prefix from the data.frame
@@ -1358,11 +1367,15 @@ biv_mr <- function(mr_prefix = '', ...){
         z <- lbmisc::rm_spaces(z)
         z
     }
-    names(x) <- clean_names(names(x))
-    names(y) <- clean_names(names(y))
+    if (!is.null(dim(x))) names(x) <- clean_names(names(x))
+    if (!is.null(dim(y))) names(y) <- clean_names(names(y))
     dots$y <- y
     dots$x <- x
-    params <- list(ordered = TRUE, only_non_zero_perc = TRUE, style = 'wide')
+    params <- list(ordered = TRUE,
+                   only_non_zero_perc = TRUE,
+                   label = paste0('tab:', mr_prefix),
+                   sheets = mr_prefix,
+                   style = 'wide')
     do.call(biv_perc, c(params, dots))
 }
 
