@@ -4,12 +4,13 @@
 \alias{biv_quali}
 \title{Bivariate table for categorical data.}
 \usage{
-biv_quali(x = NULL, y = NULL, totals = TRUE, tot_row_label = "Tot",
-  tot_col_label = "Tot", useNA = "ifany", perc = TRUE,
-  exclude_NA_perc = TRUE, NA_string = "NA", freq_sorting = c(NA, "desc",
-  "asc"), test = c("auto", "none", "fisher", "chisq"), test_params = list(),
-  latex = TRUE, latex_placement = "ht", label = NULL, caption = NULL,
-  wb = NULL, sheets = NULL)
+biv_quali(x = NULL, y = NULL, xname = NULL, yname = NULL,
+  totals = TRUE, tot_row_label = "Tot", tot_col_label = "Tot",
+  useNA = "ifany", perc = TRUE, exclude_NA_perc = TRUE,
+  NA_string = "NA", freq_sorting = c(NA, "desc", "asc"), test = c("auto",
+  "none", "fisher", "chisq"), test_params = list(), latex = TRUE,
+  latex_placement = "ht", label = NULL, caption = NULL, wb = NULL,
+  sheets = NULL)
 }
 \arguments{
 \item{x}{row variable: a discrete quantitative variable, a
@@ -17,6 +18,10 @@ character or a factor}
 
 \item{y}{column variable: a discrete quantitative variable, a
 character or a factor}
+
+\item{xname}{a string used to identify x variable (used for latex captions and excel sheets)}
+
+\item{yname}{a string used to identify x variable (used for latex captions and excel sheets)}
 
 \item{totals}{print totals?}
 

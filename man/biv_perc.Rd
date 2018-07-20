@@ -4,22 +4,34 @@
 \alias{biv_perc}
 \title{Percentages table for 0-1 variables}
 \usage{
-biv_perc(x, y, collapse_binary_x = FALSE, only_non_zero_perc = FALSE,
-  ordered = FALSE, wb = NULL, sheets = NULL)
+biv_perc(x = NULL, y = NULL, xname = NULL, yname = NULL,
+  collapse_binary_y = FALSE, only_non_zero_perc = FALSE, style = c("long",
+  "wide"), sort_freq = FALSE, latex = TRUE, latex_placement = "ht",
+  label = NULL, caption = NULL, wb = NULL, sheets = NULL)
 }
 \arguments{
-\item{x}{a single qualitative variable or a data.frame of
+\item{x}{a single quantitative variable or a data.frame of
 qualitative variable}
 
 \item{y}{a single qualitative variable or a data.frame of
 qualitative variable}
 
-\item{collapse_binary_x}{regarding x, keep in row only the 1 in 0-1
-variable or the last level for factors for x}
+\item{collapse_binary_y}{regarding y, keep in row only the 1 in 0-1
+variable or the last level for factors}
 
 \item{only_non_zero_perc}{print only non zero percentages rows}
 
-\item{ordered}{decreasing frequencies ordered table}
+\item{style}{print different groups in different columns}
+
+\item{sort_freq}{decreasing frequencies ordered table}
+
+\item{latex}{output the table using \code{xtable::xtable}}
+
+\item{latex_placement}{table placement for latex printing}
+
+\item{label}{latex label}
+
+\item{caption}{latex caption}
 
 \item{wb}{an openxlsx Workbook; if not NULL the table will be saved
 in the workbook too, aside printing}
@@ -27,6 +39,6 @@ in the workbook too, aside printing}
 \item{sheets}{optional sheet names}
 }
 \description{
-Previously called \code{univ_mr} (for multiple responses) the function make
-descriptive statistics (n, percentages) for 0-1 variables
+The function make descriptive statistics (n, percentages) for 0-1
+(or factor) x variables stratifying for the y variable
 }

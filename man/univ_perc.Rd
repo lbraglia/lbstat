@@ -4,8 +4,9 @@
 \alias{univ_perc}
 \title{Percentages table for 0-1 variables}
 \usage{
-univ_perc(x, sort_freq = FALSE, latex = TRUE, label = NULL,
-  caption = NULL, use_comments = TRUE, wb = NULL, sheets = NULL)
+univ_perc(x, sort_freq = TRUE, only_non_zero_perc = TRUE, latex = TRUE,
+  latex_placement = "ht", label = NULL, caption = NULL,
+  use_comments = TRUE, wb = NULL, sheets = NULL)
 }
 \arguments{
 \item{x}{a (chunk of) data.frame encoding multiple responses (aka
@@ -13,7 +14,11 @@ all composed of 0-1 variables)}
 
 \item{sort_freq}{sort by frequencies (descending)?}
 
+\item{only_non_zero_perc}{print only non zero percentages rows}
+
 \item{latex}{output the table using \code{xtable::xtable}}
+
+\item{latex_placement}{table placement for latex printing}
 
 \item{label}{latex label}
 
