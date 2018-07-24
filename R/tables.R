@@ -100,7 +100,8 @@ get_comments <- function(x) {
 #'     be a coercer to those types
 #' @param mr_prefixes variable name prefixes (character vector); each
 #'     of these identify a set of variable who belong to the same
-#'     multiple response question
+#'     multiple response question (if done with smarty_mr_splitter
+#'     this should end with "_")
 #' @param univ_perc_params other options (named list) for univ_perc
 #' @param univ_quant_params other options (named list) for univ_quant
 #' @param univ_quali_params other options (named list) for univ_quali
@@ -137,10 +138,11 @@ univariate_tables <-
     zero_ones <- unlist(lapply(x, lbmisc::is.percentage))
     numerics  <- unlist(lapply(x, lbmisc::is.quantitative))
     factors   <- unlist(lapply(x, lbmisc::is.qualitative))
+    mr        <- names(x) %in% gsub("_$", "", mr_prefixes)
 
     ## check variables to be ignored
     all_na        <- unlist(lapply(x, function(y) all(is.na(y))))
-    ignored_type  <- ! (zero_ones | numerics | factors)
+    ignored_type  <- ! (zero_ones | numerics | factors | mr)
     ignored       <- ignored_type | all_na
     ignored_names <- NULL
     if (any(ignored)){
@@ -167,7 +169,6 @@ univariate_tables <-
         names(mr_vars) <- mr_prefixes
     }
     
-    ## sono arrivato qui
     common_params <- list(wb = wb, latex = latex)
     univ_perc_params  <- c(common_params, univ_perc_params)
     univ_quant_params <- c(common_params, univ_quant_params)
@@ -541,6 +542,7 @@ univ_quali_latex_printer <- function(y,
 #' univ_perc(x = data)
 #' @export
 univ_perc <- function(x,
+                      xname = NULL,
                       sort_freq = TRUE,
                       only_non_zero_perc = TRUE,
                       latex = TRUE,
@@ -556,10 +558,12 @@ univ_perc <- function(x,
     if (! all(unlist((lapply(x, function(x) all(x  %in% c(0, 1, NA)))))))
         stop('x must only include 0, 1, NA')
 
+    if (is.null(xname)) xname <- gsub('^.+\\$', '', deparse(substitute(x)))[1L]## for safeness
+    
     if (is.null(label))
-        label <- ''
+        label <- paste('tab', xname, sep = ':')
     if (is.null(caption))
-        caption <- ''
+        caption <- if (!is.null(comment(x))) comment(x) else ''
     if (is.null(sheets))
         sheets <- ''
 
@@ -589,20 +593,19 @@ univ_perc <- function(x,
     if (only_non_zero_perc){
         rval <- rval[rval$n > 0, , drop = FALSE]
     }
-        
-    
+
+    ## browser()
     ## varnames <- strtrim(paste(rownames(rval), collapse = '_'), 31)
     varnames <- paste(rownames(rval), collapse = '_')
         
     ## Workbook handling
     if (methods::is(wb, "Workbook")){
-        xlsx_table(rval,
-                   NULL, # table
-                   wb,
-                   sheets,
-                   ## label,
-                   caption,
-                   varnames)
+        xlsx_table(tab = rval,
+                   test_df = NULL, # table
+                   wb = wb,
+                   sheet = sheets,
+                   caption = caption,
+                   varname = varnames)
     }
 
     if (latex) {
@@ -698,6 +701,7 @@ bivariate_tables <- function(x, group,
     numerics_c  <- x_names[numerics]
     factors_c   <- x_names[factors]
 
+    mr_vars <- NULL
     if (!is.null(mr_prefixes)){
         mr_patterns <- paste0("^", mr_prefixes)
         mr_vars <- lapply(mr_patterns,
@@ -756,6 +760,8 @@ raw_worker <- function(x, ## dataset
                     ## remove the other mr for the next cycle
                     finder <- function(x) varname %in% x
                     involved_mr <- Filter(finder, mr_vars)
+                    ## TODOHERE
+                    ## browser()
                     involved_prefix <- names(involved_mr)
                     involved_mr <- unlist(involved_mr)
                     ## adjust various data.frame
@@ -1328,13 +1334,12 @@ biv_perc <- function(x = NULL,
     
     ## Workbook handling
     if (methods::is(wb, "Workbook")){
-        xlsx_table(rval,
+        xlsx_table(tab = rval,
                    test_df = NULL,
-                   wb,
-                   sheets,
-                   ## label,
-                   caption,
-                   varnames,
+                   wb = wb,
+                   sheet = sheets,
+                   caption = caption,
+                   varname = varnames,
                    rowNames = FALSE)
     }
 
@@ -1365,7 +1370,9 @@ biv_perc <- function(x = NULL,
 #' @param ... other parameters passed to biv_perc with exception of
 #' sort_freq (TRUE) and only_non_zero_perc (TRUE)
 #' @export
-biv_mr <- function(mr_prefixes = '', caption, ...){
+biv_mr <- function(mr_prefixes = '',
+                   # caption,
+                   ...){
     ## clean prefix from the data.frame
     dots <- list(...)
     x <- dots$x
@@ -1381,7 +1388,7 @@ biv_mr <- function(mr_prefixes = '', caption, ...){
     dots$x <- x
     params <- list(sort_freq = TRUE,
                    only_non_zero_perc = TRUE,
-                   caption = caption,
+                   ## caption = caption,
                    label = paste0('tab:', mr_prefixes),
                    sheets = mr_prefixes,
                    style = 'wide')

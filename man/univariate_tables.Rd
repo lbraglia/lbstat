@@ -29,7 +29,8 @@ be a coercer to those types}
 
 \item{mr_prefixes}{variable name prefixes (character vector); each
 of these identify a set of variable who belong to the same
-multiple response question}
+multiple response question (if done with smarty_mr_splitter
+this should end with "_")}
 
 \item{univ_perc_params}{other options (named list) for univ_perc}
 

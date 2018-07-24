@@ -4,7 +4,7 @@
 \alias{biv_mr}
 \title{A wrapper around biv_perc lightly optimized for multiple response}
 \usage{
-biv_mr(mr_prefixes = "", caption, ...)
+biv_mr(mr_prefixes = "", ...)
 }
 \arguments{
 \item{mr_prefixes}{the single multiple response}
