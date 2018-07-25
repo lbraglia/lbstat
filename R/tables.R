@@ -281,7 +281,6 @@ univ_quant <- function(x,
         }
     }
     
-    ## varnames <- strtrim(paste(rownames(rval), collapse = '_'), 31)
     varnames <- paste(rownames(rval), collapse = '_')
         
     ## excel exporting
@@ -569,7 +568,8 @@ univ_perc <- function(x,
 
     not_NA <- unlist(lapply(x, function(x) sum(!is.na(x))))
     s <- colSums(x, na.rm = TRUE)
-    rval <- data.frame(cbind('n' = s, '%' = round((s/not_NA)*100, 2)))
+    rval <- data.frame(cbind(s, (s/not_NA)*100))
+    names(rval) <- c('n', '%')
     ## substitute rownames if comment are available and we use them
     if (use_comments){
         comments <- get_comments(x)
@@ -595,7 +595,6 @@ univ_perc <- function(x,
     }
 
     ## browser()
-    ## varnames <- strtrim(paste(rownames(rval), collapse = '_'), 31)
     varnames <- paste(rownames(rval), collapse = '_')
         
     ## Workbook handling
@@ -891,7 +890,6 @@ biv_quali <- function(x = NULL,
     
     if (is.null(xname)) xname <- gsub('^.+\\$', '', deparse(substitute(x)))[1L]## for safeness
     if (is.null(yname)) yname <- gsub('^.+\\$', '', deparse(substitute(y)))[1L]## for safeness 
-    ## varnames <- strtrim(paste(yname, xname, sep = '_'), 31)
     varnames <- paste(yname, xname, sep = '_')
     
     if (is.null(label))
@@ -1088,7 +1086,6 @@ biv_quant <- function(x, y,
     
     if (is.null(xname)) xname <- gsub('^.+\\$', '', deparse(substitute(x)))[1L]## for safeness
     if (is.null(yname)) yname <- gsub('^.+\\$', '', deparse(substitute(y)))[1L]## for safeness
-    ## varnames <- strtrim(paste(yname, xname, sep = '_'), 31)
     varnames <- paste(yname, xname, sep = '_')
     
     if (is.null(label))
@@ -1203,7 +1200,6 @@ biv_perc <- function(x = NULL,
     style <- match.arg(style)
     if (is.null(xname)) xname <- gsub('^.+\\$', '', deparse(substitute(x)))[1L]## for safeness
     if (is.null(yname)) yname <- gsub('^.+\\$', '', deparse(substitute(y)))[1L]## for safeness
-    ## varnames <- strtrim(paste(xname, yname, sep = '_'), 31)
     varnames <- paste(xname, yname, sep = '_')
     
     if (is.null(label))
