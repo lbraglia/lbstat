@@ -4,7 +4,8 @@
 \alias{fisher_needed}
 \title{Is Fisher's exact test needed}
 \usage{
-fisher_needed(x = NULL, y = NULL, threshold = 5L, full_report = FALSE)
+fisher_needed(x = NULL, y = NULL, threshold = 5L,
+  full_report = FALSE)
 }
 \arguments{
 \item{x}{first variable, a table or a matrix}
