@@ -941,11 +941,13 @@ biv_quali <- function(x = NULL,
     rval <- cbind(abs_freq, rel_freq)
 
     ## a little trick for column right ordering
-    id_seq <- matrix(c(1:ncol(rval)), nrow = 2, byrow = TRUE)
+    if  (((!col_perc) && exclude_NA_perc && any(na_col)))
+        id_seq <- matrix(c(1:(ncol(rval)+1)), nrow = 2, byrow = TRUE)
+    else id_seq <- matrix(c(1:ncol(rval)), nrow = 2, byrow = TRUE)
     dim(id_seq) <- NULL
     ## remove the last index which is the first by recycling when using
     ## row percentages
-    #if ((!col_perc) && exclude_NA_perc) id_seq <- id_seq[-length(id_seq)]
+    if ((!col_perc) && exclude_NA_perc && any(na_col)) id_seq <- id_seq[-length(id_seq)]
     rval <- rval[, id_seq]
 
     if(totals) {
@@ -979,6 +981,8 @@ biv_quali <- function(x = NULL,
             }
             tot_row <- matrix(c(col_sums, row_tot_perc), byrow =TRUE, nrow = 2)
             dim(tot_row) <- NULL
+            ## todohere
+            # browser()
             rval <- rbind(rval, 'Tot' = tot_row)
             rownames(rval)[nrow(rval)] <- tot_row_label
             ## rows totals
