@@ -859,6 +859,7 @@ biv_quali <- function(x = NULL,
                       tot_col_label = 'Tot',
                       useNA = 'ifany',
                       perc = TRUE,
+                      col_perc = TRUE,
                       exclude_NA_perc = TRUE,
                       NA_string = 'NA',
                       ## round_digits = 3,
@@ -918,15 +919,22 @@ biv_quali <- function(x = NULL,
     }
     
     ## column percentages 
-    rel_freq <- prop.table(abs_freq, margin = 2) * 100
+    rel_freq <- prop.table(abs_freq, margin = if (col_perc) 2 else 1) * 100
     ## rm row NA percentage and back percentages to 100
+    na_row <- is.na(rownames(rel_freq))
+    na_col <- is.na(colnames(rel_freq))
     if (exclude_NA_perc){
-        na_row <- is.na(rownames(rel_freq))
-        rel_freq[na_row, ] <- NA
-        rel_freq <- apply(rel_freq, 2,
+        if (col_perc) {
+            rel_freq[na_row, ] <- NA
+        } else {
+            rel_freq <- rel_freq[, !na_col]
+        }
+        rel_freq <- apply(rel_freq,
+                          if (col_perc) 2 else 1,
                           function(x) 100 * x/sum(x, na.rm = TRUE))
+        ## transpose to fix dimension with row percentages
+        if (!col_perc) rel_freq <- t(rel_freq)
     }
-
     colnames(rel_freq) <- rep('%', ncol(rel_freq))
 
     ## cbind together
@@ -935,28 +943,51 @@ biv_quali <- function(x = NULL,
     ## a little trick for column right ordering
     id_seq <- matrix(c(1:ncol(rval)), nrow = 2, byrow = TRUE)
     dim(id_seq) <- NULL
+    ## remove the last index which is the first by recycling when using
+    ## row percentages
+    #if ((!col_perc) && exclude_NA_perc) id_seq <- id_seq[-length(id_seq)]
     rval <- rval[, id_seq]
 
     if(totals) {
-
-        ## rows totals
-        row_sums <- rowSums(abs_freq)
-        col_tot_perc <- (row_sums / sum(row_sums)) * 100
-        ## exclude NA perc
-        if (exclude_NA_perc){
-            col_tot_perc[na_row] <- NA
-            col_tot_perc <- 100 *
-                (col_tot_perc / sum(col_tot_perc, na.rm = TRUE))
+        if (col_perc){
+            ## rows totals
+            row_sums <- rowSums(abs_freq)
+            col_tot_perc <- (row_sums / sum(row_sums)) * 100
+            ## exclude NA perc
+            if (exclude_NA_perc){
+                col_tot_perc[na_row] <- NA
+                col_tot_perc <- 100 *
+                    (col_tot_perc / sum(col_tot_perc, na.rm = TRUE))
+            }
+            rval <- cbind(rval, 'Tot' = row_sums, '%' = col_tot_perc)
+            colnames(rval)[ncol(rval) - 1] <- tot_col_label
+            ## columns totals
+            col_sums <- colSums(rval)
+            ## put NA to percentage sums (100%) which is obvious: odd columns
+            col_sums[seq(from = 2, to = length(col_sums), by = 2)] <- NA
+            rval <- rbind(rval, 'Tot' = col_sums)
+            rownames(rval)[nrow(rval)] <- tot_row_label
+        } else {
+            ## columns totals
+            col_sums <- colSums(abs_freq)
+            row_tot_perc <- (col_sums / sum(col_sums)) * 100
+            ## exclude NA perc
+            if (exclude_NA_perc){
+                row_tot_perc[na_col] <- NA
+                row_tot_perc <- 100 *
+                    (row_tot_perc / sum(row_tot_perc, na.rm = TRUE))
+            }
+            tot_row <- matrix(c(col_sums, row_tot_perc), byrow =TRUE, nrow = 2)
+            dim(tot_row) <- NULL
+            rval <- rbind(rval, 'Tot' = tot_row)
+            rownames(rval)[nrow(rval)] <- tot_row_label
+            ## rows totals
+            row_sums <- rowSums(abs_freq)
+            overall_tot <- sum(row_sums)
+            rval <- cbind(rval, 'Tot' = c(row_sums, overall_tot))
+            colnames(rval)[ncol(rval)] <- tot_col_label
         }
-        rval <- cbind(rval, 'Tot' = row_sums, '%' = col_tot_perc)
-        colnames(rval)[ncol(rval) - 1] <- tot_col_label
-
-        ## columns totals
-        col_sums <- colSums(rval)
-        ## put NA to percentage sums (100%) which is obvious: odd columns
-        col_sums[seq(from = 2, to = length(col_sums), by = 2)] <- NA
-        rval <- rbind(rval, 'Tot' = col_sums)
-        rownames(rval)[nrow(rval)] <- tot_row_label
+        
     }
 
     ## print percentages?
@@ -1014,8 +1045,22 @@ biv_quali <- function(x = NULL,
     ## output
     if (latex){
         if (perc) {
+            # browser()
             ## alternate 0,2 for number of columns/2
-            digits <- rep(c(0,2), ncol(rval)/2)
+            digits <- rep(c(0,2), sum(!na_col))
+            ## GESTIONE NA
+            ## -----------
+            ## se percentuali di colonna e ci sono dei NA aggiungi un c(0,2)
+            if (col_perc && any(na_col)) digits <- c(digits, c(0,2))
+            if ((!col_perc) && any(na_col) && (!exclude_NA_perc)) digits <- c(digits, c(0, 2))
+            if ((!col_perc) && any(na_col) && (exclude_NA_perc)) digits <- c(digits, c(0))
+            
+            ## GESTIONE TOT (aggiungi 0,2 se percentuali di colonna, 0 se +
+            ## di riga
+            ## -----------
+            if (col_perc) digits <- c(digits, c(0,2))
+            else digits <- c(digits, 0)
+        
         } else {
             ## no percentages, all integers
             digits <- rep(0L, ncol(rval))
