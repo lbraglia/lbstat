@@ -823,7 +823,7 @@ raw_worker <- function(x, ## dataset
 #' @param tot_row_label label for rows total
 #' @param tot_col_label label for columns total
 #' @param useNA print NA?
-#' @param perc print column percentage (default = TRUE)
+#' @param perc type of percentages
 #' @param exclude_NA_perc remove NA from percentages (default = TRUE)
 #' @param NA_string character used for NA's columns title
 #' @param freq_sorting freq based sorting: can be \code{NA} (no freq
@@ -858,8 +858,9 @@ biv_quali <- function(x = NULL,
                       tot_row_label = 'Tot',
                       tot_col_label = 'Tot',
                       useNA = 'ifany',
-                      perc = TRUE,
-                      col_perc = TRUE,
+                      perc = c("col", "row", "none"),
+                      ## perc = TRUE,
+                      ## col_perc = TRUE,
                       exclude_NA_perc = TRUE,
                       NA_string = 'NA',
                       ## round_digits = 3,
@@ -874,7 +875,20 @@ biv_quali <- function(x = NULL,
                       sheets = NULL)
 {
     test <- match.arg(test)
-
+    perc <- match.arg(perc)
+    ## to be compliant with the past code
+    if (perc == 'col') {
+        perc <- TRUE
+        col_perc <- TRUE
+    } else if (perc == 'row') {
+        perc <- TRUE
+        col_perc <- FALSE
+    } else if (perc == 'none') {
+        perc <- FALSE
+        col_perc <- TRUE
+    }
+        
+    
     ## handle 1 col data.frame
     one_col_x <- is.data.frame(x) && ncol(x) == 1L
     one_col_y <- is.data.frame(y) && ncol(y) == 1L
