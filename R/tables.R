@@ -979,10 +979,15 @@ biv_quali <- function(x = NULL,
                 row_tot_perc <- 100 *
                     (row_tot_perc / sum(row_tot_perc, na.rm = TRUE))
             }
-            tot_row <- matrix(c(col_sums, row_tot_perc), byrow =TRUE, nrow = 2)
+            tot_row <- matrix(c(col_sums, row_tot_perc), byrow = TRUE, nrow = 2)
             dim(tot_row) <- NULL
+            ## se exclude_NA_perc e vi sono NA elimina l'ultimo elemento (NA
+            ## che è stato lasciato per creare la matrice di sopra)
+            if (exclude_NA_perc && any(na_col))
+                tot_row <- tot_row[- length(tot_row)]
             ## todohere
             # browser()
+            ## o qui lo si toglie
             rval <- rbind(rval, 'Tot' = tot_row)
             rownames(rval)[nrow(rval)] <- tot_row_label
             ## rows totals
