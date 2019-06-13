@@ -1409,9 +1409,11 @@ biv_perc <- function(x = NULL,
 
     ## output
     if (latex){
+        digits <- c(0, # rowname non stampato
+                    rep(c(0, 0, 0, 2), ncol(rval) / 4)) # set di 4 colonne 
         xt <- xtable::xtable(rval,
                              ## align = 'todo',
-                             ## digits = c(0, digits),
+                             digits = digits,
                              label = label,
                              caption = caption)
         xtable::print.xtable(xt,
