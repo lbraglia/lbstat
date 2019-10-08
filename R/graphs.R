@@ -46,11 +46,16 @@ quant_density <- function(x, na.rm = TRUE, quiet = TRUE, ...){
 #' @param group group/qualitative variable (coerced to factor)
 #' @param test which test to perform
 #' @param add_p_height add a line with p of the test performed at the
-#'   specified height (on the y scale) if this value is not NA
+#'     specified height (on the y scale) if this value is not NA
+#' @param biv_quant_par parameter passed to biv_quant (other than x
+#'     and y) for printing statistics to Latex and exporting them to
+#'     excel
 #' @param ... further params passed to boxplot
 #' @export
 boxplot_test <- function(x, group, test = c('kruskal.test', 'anova'), 
-                         add_p_height = NA, ...) 
+                         add_p_height = NA,
+                         biv_quant_par = NULL,
+                         ...) 
 {
     db <- data.frame(x = x, group = factor(group))
     n_groups <- nlevels(db$group)
@@ -73,6 +78,10 @@ boxplot_test <- function(x, group, test = c('kruskal.test', 'anova'),
         lbmisc::segments_text(text = bp_text, 
                               x0 = 1, x1 = n_groups,
                               y = add_p_height)
+    }
+    if (!is.null(biv_quant_par) & is.list(biv_quant_par)){
+        biv_quant_par <- c(list(x = x, y = group), biv_quant_par)
+        do.call(biv_quant, biv_quant_par)
     }
     invisible(list("bp" = bp, 'test_name' = test_name, 
                    'test' = test, 'test_p' = test_p))

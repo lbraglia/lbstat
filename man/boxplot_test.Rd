@@ -5,7 +5,7 @@
 \title{Draw a boxplot with Kruskal-Wallis or Anova test too}
 \usage{
 boxplot_test(x, group, test = c("kruskal.test", "anova"),
-  add_p_height = NA, ...)
+  add_p_height = NA, biv_quant_par = NULL, ...)
 }
 \arguments{
 \item{x}{quantitative variable}
@@ -16,6 +16,10 @@ boxplot_test(x, group, test = c("kruskal.test", "anova"),
 
 \item{add_p_height}{add a line with p of the test performed at the
 specified height (on the y scale) if this value is not NA}
+
+\item{biv_quant_par}{parameter passed to biv_quant (other than x
+and y) for printing statistics to Latex and exporting them to
+excel}
 
 \item{...}{further params passed to boxplot}
 }
