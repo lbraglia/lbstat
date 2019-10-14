@@ -10,6 +10,7 @@ r_github_packages:
 # https://towardsdatascience.com/travis-ci-for-r-advanced-guide-719cb2d9e0e5
 addons:
   apt:
-    packages: - xvfb
+    packages:
+    - xvfb
 script:
  - xvfb-run R CMD check *tar.gz --as-cran
