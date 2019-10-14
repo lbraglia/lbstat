@@ -8,5 +8,8 @@ r_github_packages:
 # Questo di sotto è perché non crolli, servendo TK e in assenza di grafico
 # https://stackoverflow.com/questions/1710853
 # https://towardsdatascience.com/travis-ci-for-r-advanced-guide-719cb2d9e0e5
-addons: apt: packages: - xvfb
-script: - xvfb-run R CMD check *tar.gz --as-cran
+addons:
+  apt:
+    packages: - xvfb
+script:
+ - xvfb-run R CMD check *tar.gz --as-cran
