@@ -4,8 +4,14 @@
 \alias{boxplot_test}
 \title{Draw a boxplot with Kruskal-Wallis or Anova test too}
 \usage{
-boxplot_test(x, group, test = c("kruskal.test", "anova"),
-  add_p_height = NA, biv_quant_par = NULL, ...)
+boxplot_test(
+  x,
+  group,
+  test = c("kruskal.test", "anova"),
+  add_p_height = NA,
+  biv_quant_par = NULL,
+  ...
+)
 }
 \arguments{
 \item{x}{quantitative variable}

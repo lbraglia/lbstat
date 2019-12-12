@@ -4,10 +4,20 @@
 \alias{univ_quali}
 \title{Univariate table for categorical data.}
 \usage{
-univ_quali(x = NULL, totals = TRUE, useNA = "ifany",
-  NA_string = "NA", freq_sorting = c(NA, "desc", "asc"),
-  latex = TRUE, latex_placement = "ht", label = NULL,
-  caption = NULL, use_comments = TRUE, wb = NULL, sheets = NULL)
+univ_quali(
+  x = NULL,
+  totals = TRUE,
+  useNA = "ifany",
+  NA_string = "NA",
+  freq_sorting = c(NA, "desc", "asc"),
+  latex = TRUE,
+  latex_placement = "ht",
+  label = NULL,
+  caption = NULL,
+  use_comments = TRUE,
+  wb = NULL,
+  sheets = NULL
+)
 }
 \arguments{
 \item{x}{a discrete quantitative variable, a character or a factor}

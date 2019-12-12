@@ -3,7 +3,6 @@
 \docType{package}
 \name{lbstat}
 \alias{lbstat}
-\alias{lbstat-package}
 \title{lbstat.}
 \description{
 lbstat.

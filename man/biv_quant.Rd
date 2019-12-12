@@ -4,10 +4,21 @@
 \alias{biv_quant}
 \title{Bivariate table for a main quantitative vector}
 \usage{
-biv_quant(x, y, xname = NULL, yname = NULL, na.rm = FALSE,
-  add_all = TRUE, test = c("none", "anova", "kruskal.test"),
-  latex = TRUE, latex_placement = "ht", label = NULL,
-  caption = NULL, wb = NULL, sheets = NULL)
+biv_quant(
+  x,
+  y,
+  xname = NULL,
+  yname = NULL,
+  na.rm = FALSE,
+  add_all = TRUE,
+  test = c("none", "anova", "kruskal.test"),
+  latex = TRUE,
+  latex_placement = "ht",
+  label = NULL,
+  caption = NULL,
+  wb = NULL,
+  sheets = NULL
+)
 }
 \arguments{
 \item{x}{a quantitative variable}

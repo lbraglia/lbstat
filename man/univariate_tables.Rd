@@ -5,10 +5,18 @@
 \title{Dispatcher for (qualitative/quantitative) univariate tables and
 statistics.}
 \usage{
-univariate_tables(x, wb = NULL, latex = TRUE, exclude = NULL,
-  style = c("raw", "type"), date_preproc = function(d) factor(format(d,
-  "\%Y-\%m")), mr_prefixes = NULL, univ_perc_params = list(),
-  univ_quant_params = list(), univ_quali_params = list())
+univariate_tables(
+  x,
+  wb = NULL,
+  latex = TRUE,
+  exclude = NULL,
+  style = c("raw", "type"),
+  date_preproc = function(d) factor(format(d, "\%Y-\%m")),
+  mr_prefixes = NULL,
+  univ_perc_params = list(),
+  univ_quant_params = list(),
+  univ_quali_params = list()
+)
 }
 \arguments{
 \item{x}{a \code{data.frame}}

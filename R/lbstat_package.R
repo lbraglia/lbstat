@@ -20,6 +20,7 @@
 #' @importFrom stats chisq.test
 #' @importFrom stats coef
 #' @importFrom stats confint
+#' @importFrom stats cor.test
 #' @importFrom stats density
 #' @importFrom stats family
 #' @importFrom stats fisher.test

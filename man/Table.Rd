@@ -4,8 +4,7 @@
 \alias{Table}
 \title{Cross tabulation and table creation}
 \usage{
-Table(..., useNA = "ifany", f = list(Sum = sum), margin = NULL,
-  quiet = TRUE)
+Table(..., useNA = "ifany", f = list(Sum = sum), margin = NULL, quiet = TRUE)
 }
 \arguments{
 \item{...}{Arguments to be passed to table.}

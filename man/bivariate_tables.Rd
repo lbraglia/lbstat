@@ -5,12 +5,20 @@
 \title{Dispatcher for (qualitative/quantitative) bivariate tables and
 statistics.}
 \usage{
-bivariate_tables(x, group, wb = NULL, latex = TRUE, exclude = NULL,
-  style = c("raw", "type"), analysis_name = "",
+bivariate_tables(
+  x,
+  group,
+  wb = NULL,
+  latex = TRUE,
+  exclude = NULL,
+  style = c("raw", "type"),
+  analysis_name = "",
   date_preproc = function(d) factor(format(d, "\%Y-\%m")),
-  mr_prefixes = NULL, biv_perc_params = list(),
-  biv_quant_params = list(test = "none"), biv_quali_params = list(test
-  = "auto"))
+  mr_prefixes = NULL,
+  biv_perc_params = list(),
+  biv_quant_params = list(test = "none"),
+  biv_quali_params = list(test = "auto")
+)
 }
 \arguments{
 \item{x}{a \code{data.frame}}

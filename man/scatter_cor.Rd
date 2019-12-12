@@ -4,8 +4,14 @@
 \alias{scatter_cor}
 \title{Draw a scatterplot with correlation coefficient}
 \usage{
-scatter_cor(x, y, rho = c("spearman", "pearson"), plot_rho_x = NA,
-  plot_rho_y = NA, ...)
+scatter_cor(
+  x,
+  y,
+  rho = c("spearman", "pearson"),
+  plot_rho_x = NA,
+  plot_rho_y = NA,
+  ...
+)
 }
 \arguments{
 \item{x}{quantitative variable}

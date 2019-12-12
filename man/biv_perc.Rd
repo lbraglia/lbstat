@@ -4,11 +4,22 @@
 \alias{biv_perc}
 \title{Percentages table for 0-1 variables}
 \usage{
-biv_perc(x = NULL, y = NULL, xname = NULL, yname = NULL,
-  collapse_binary_y = FALSE, only_non_zero_perc = FALSE,
-  style = c("long", "wide"), sort_freq = FALSE, latex = TRUE,
-  latex_placement = "ht", label = NULL, caption = NULL, wb = NULL,
-  sheets = NULL)
+biv_perc(
+  x = NULL,
+  y = NULL,
+  xname = NULL,
+  yname = NULL,
+  collapse_binary_y = FALSE,
+  only_non_zero_perc = FALSE,
+  style = c("long", "wide"),
+  sort_freq = FALSE,
+  latex = TRUE,
+  latex_placement = "ht",
+  label = NULL,
+  caption = NULL,
+  wb = NULL,
+  sheets = NULL
+)
 }
 \arguments{
 \item{x}{a single quantitative variable or a data.frame of
