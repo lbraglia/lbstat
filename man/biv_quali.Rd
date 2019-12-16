@@ -21,8 +21,10 @@ biv_quali(
   test_params = list(),
   latex = TRUE,
   latex_placement = "ht",
-  label = NULL,
-  caption = NULL,
+  label_prefix = "",
+  label = "",
+  caption_prefix = "",
+  caption = "",
   wb = NULL,
   sheets = NULL
 )
@@ -34,9 +36,11 @@ character or a factor}
 \item{y}{column variable: a discrete quantitative variable, a
 character or a factor}
 
-\item{xname}{a string used to identify x variable (used for latex captions and excel sheets)}
+\item{xname}{a string used to identify x variable (used for latex
+captions and excel sheets)}
 
-\item{yname}{a string used to identify x variable (used for latex captions and excel sheets)}
+\item{yname}{a string used to identify x variable (used for latex
+captions and excel sheets)}
 
 \item{totals}{print totals?}
 
@@ -67,7 +71,15 @@ performing function}
 
 \item{latex_placement}{table placement for latex printing}
 
+\item{label_prefix}{latex label prefix (useful for a common prefix
+in univariate_tables and multivariate_tables). It's ignored if
+label is specified (eg the latter is considered
+full/complete/correct)}
+
 \item{label}{latex label}
+
+\item{caption_prefix}{a prefix for latex caption (useful for a
+common prefix in univariate_tables and multivariate_tables)}
 
 \item{caption}{latex caption}
 

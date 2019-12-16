@@ -12,7 +12,6 @@ bivariate_tables(
   latex = TRUE,
   exclude = NULL,
   style = c("raw", "type"),
-  analysis_name = "",
   date_preproc = function(d) factor(format(d, "\%Y-\%m")),
   mr_prefixes = NULL,
   biv_perc_params = list(),
@@ -33,8 +32,6 @@ bivariate_tables(
 
 \item{style}{if 'raw' display variables in the order given, if
 'type' display variable by type}
-
-\item{analysis_name}{label prefix}
 
 \item{date_preproc}{function to preprocess Date columns. By default
 make them Year-month factors; currently only factor, numerics

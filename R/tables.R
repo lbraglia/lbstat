@@ -14,7 +14,8 @@ xlsx_caption <- function(x){
 ##
 ## helper for exporting tables ... very raw for now
 ##
-xlsx_table <- function(tab, test_df, wb, sheet, caption, varname, rowNames = TRUE)
+xlsx_table <- function(tab, test_df, wb, sheet, caption,
+                       varname, rowNames = TRUE)
 {
 
     if (sheet == '')
@@ -637,7 +638,6 @@ univ_perc <- function(x,
 #' @param exclude character vector of data.frame name to be ignored
 #' @param style if 'raw' display variables in the order given, if
 #'     'type' display variable by type
-#' @param analysis_name label prefix
 #' @param date_preproc function to preprocess Date columns. By default
 #'     make them Year-month factors; currently only factor, numerics
 #'     and 0-1 variable are not ignored, therefore date_preproc should
@@ -655,7 +655,6 @@ bivariate_tables <- function(x, group,
                              latex = TRUE,
                              exclude = NULL,
                              style = c('raw', 'type'),
-                             analysis_name = '',
                              date_preproc = function(d) factor(format(d, '%Y-%m')),
                              mr_prefixes = NULL,
                              biv_perc_params = list(),
@@ -817,8 +816,10 @@ raw_worker <- function(x, ## dataset
 #'     character or a factor
 #' @param y column variable: a discrete quantitative variable, a
 #'     character or a factor
-#' @param xname a string used to identify x variable (used for latex captions and excel sheets)
-#' @param yname a string used to identify x variable (used for latex captions and excel sheets)
+#' @param xname a string used to identify x variable (used for latex
+#'     captions and excel sheets)
+#' @param yname a string used to identify x variable (used for latex
+#'     captions and excel sheets)
 #' @param totals print totals?
 #' @param tot_row_label label for rows total
 #' @param tot_col_label label for columns total
@@ -836,7 +837,13 @@ raw_worker <- function(x, ## dataset
 #'     performing function
 #' @param latex output the table using \code{xtable::xtable}
 #' @param latex_placement table placement for latex printing
+#' @param label_prefix latex label prefix (useful for a common prefix
+#'     in univariate_tables and multivariate_tables). It's ignored if
+#'     label is specified (eg the latter is considered
+#'     full/complete/correct)
 #' @param label latex label
+#' @param caption_prefix a prefix for latex caption (useful for a
+#'     common prefix in univariate_tables and multivariate_tables)
 #' @param caption latex caption
 #' @param wb an openxlsx Workbook; if not NULL the table will be saved
 #'     in the workbook too, aside printing
@@ -869,8 +876,10 @@ biv_quali <- function(x = NULL,
                       test_params = list(),
                       latex = TRUE,
                       latex_placement = 'ht',
-                      label = NULL,
-                      caption = NULL,
+                      label_prefix = '',
+                      label = '',
+                      caption_prefix = '',
+                      caption = '',
                       wb = NULL,
                       sheets = NULL)
 {
@@ -903,14 +912,47 @@ biv_quali <- function(x = NULL,
         y <- y[, 1]
     }
     
-    if (is.null(xname)) xname <- gsub('^.+\\$', '', deparse(substitute(x)))[1L]## for safeness
-    if (is.null(yname)) yname <- gsub('^.+\\$', '', deparse(substitute(y)))[1L]## for safeness 
+    if (is.null(xname))
+        xname <- gsub('^.+\\$', '', deparse(substitute(x)))[1L]## for safeness
+    if (is.null(yname))
+        yname <- gsub('^.+\\$', '', deparse(substitute(y)))[1L]## for safeness 
     varnames <- paste(yname, xname, sep = '_')
+
+    ## LABEL
+    latex_label_maker <- function(label, label_prefix, varnames){
+        ## LABEL
+        if (label != '') {
+            ## do nothing: if label is specified it's assumed to be correct
+        } else {
+            ## otherwise substitute with the variable name, prefixed by
+            ## label_prefix
+            label <- paste0('tab:', label_prefix, varnames)
+        }
+        label
+    }
+
+    label <- latex_label_maker(label = label,
+                               label_prefix = label_prefix,
+                               varnames = varnames)
+
     
-    if (is.null(label))
-        label <- paste('tab', varnames, sep = ':')
-    if (is.null(caption))
-        caption <- if (!is.null(comment(x))) comment(x) else ''
+    ## CAPTION
+    latex_caption_maker <- function(caption, caption_prefix, var_comment){
+        if (caption != '') {
+            ## add caption prefix (useful for a common bivariate_tables,
+            ## for example
+            caption <- paste0(caption_prefix, caption)
+        } else {
+            ## substitute caption with comment if available
+            caption <- paste0(caption_prefix, var_comment)
+        }
+        caption
+    }
+    caption <- latex_caption_maker(caption = caption,
+                                   caption_prefix = caption_prefix,
+                                   var_comment = comment(x))
+    
+   
     if (is.null(sheets))
         sheets <- ''
 
