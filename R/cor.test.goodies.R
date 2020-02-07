@@ -47,3 +47,24 @@ cor.test.data.frame <-
     rownames(res) <- NULL
     res
 }
+
+
+
+#' cor.test p-values matrix
+#' @param x   matrix/data.frame of variable to be analyzed
+#' @param ... parameters passed to \code{cor.test}
+#'
+#' @export
+cor.test_p <- function(x, ...)
+{   
+    # x è la matrice di dati su cui fare i test di correlazione
+    # ... sono le opzioni da passare a cor.test
+    FUN <- function(x, y) cor.test(x, y, ...)[[3]]
+    z <- outer(
+        colnames(x),
+        colnames(x),
+        Vectorize(function(i,j) FUN(x[,i], x[,j]))
+        )
+    dimnames(z) <- list(colnames(x), colnames(x))
+    z
+}
