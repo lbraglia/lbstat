@@ -108,20 +108,17 @@ univariate_tables <-
     } else if (style == 'type') {
         if (any(zero_ones)) {
             data <- x[, zero_ones, drop = FALSE]
-            params <- c(list(x = data, wb = wb, latex = latex),
-                        univ_perc_params)
+            params <- c(list(x = data), univ_perc_params)
             do.call(univ_perc, params)
         }
         if (any(numerics)){
             data <- x[, numerics, drop = FALSE]
-            params <- c(list(x = data, wb = wb, latex = latex),
-                        univ_quant_params)
+            params <- c(list(x = data), univ_quant_params)
             do.call(univ_quant, params)
         }
         if (any(factors)){
             data <- x[, factors, drop = FALSE]
-            params <- c(list(x = data, wb = wb, latex = latex),
-                        univ_quali_params)
+            params <- c(list(x = data), univ_quali_params)
             do.call(univ_quali, params)
         }                                   
     }
