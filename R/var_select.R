@@ -49,13 +49,24 @@ var_select <- function(formula,
             tmp <- predict(estimate, type = 'coefficients', s = best_l)
             ## if lasso return only the non zero coefficients, otherwise 
             ## (ridge) return them all
-            if ('lasso' == method) tmp[tmp[, 1] != 0, ] else tmp
+            if ('lasso' == method) tmp[tmp[, 1] != 0, ] else tmp[, 1]
         }
+
+        ## selected variables: obtain covariates from matching starting name
+        ## again if 'ridge', all are selected
+        covariates <- get_covariates(formula)
+        names(covariates) <- covariates
+        ncoefs <- names(coefs)
+        matches <- lapply(covariates, function(x)
+            any(grepl(sprintf("^%s", x), ncoefs)))
+        selected <- names(which(unlist(matches)))
+        
         ## return
         list('cv_out'      = cv_out,
              'best_l'      = best_l,
              'est'         = estimate,
-             'coefs'       = coefs)
+             'coefs'       = coefs,
+             'selected'    = selected)
     } else if ('step' == method) {
         ## --------------------------
         ## stepwise AIC method
@@ -65,9 +76,21 @@ var_select <- function(formula,
         scope <- list(upper = full_f[-2], lower = null_f[-2])
         mod_null <- glm(null_f, family = family, data = data)
         mod_full <- glm(full_f, family = family, data = data)
-        ## starting from the null model
+        ## starting from the null model or the full model
         step_null <- step(mod_null, scope = scope)
         step_full <- step(mod_full, scope = scope)
-        list('from_null' = step_null, 'from_full' = step_full)
+        ## extracted variables
+        from_null_selected <- get_covariates(step_null)
+        from_full_selected <- get_covariates(step_full)
+        ## return values
+        list('from_null' = step_null,
+             'from_null_selected' = from_null_selected,
+             'from_full' = step_full,
+             'from_full_selected' = from_full_selected,
+             'from_both_selected' =
+                 intersect(from_null_selected, from_full_selected))
     }
 }
+
+## helpers
+get_covariates <- function(x) labels(terms(formula(x)))
