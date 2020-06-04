@@ -2,6 +2,8 @@
 #'
 #' @name lbstat
 #' @docType package
+#' @importFrom glmnet cv.glmnet
+#' @importFrom glmnet glmnet
 #' @importFrom graphics abline
 #' @importFrom graphics plot
 #' @importFrom lbmisc %nin%

@@ -4,3 +4,6 @@
 \name{lbstat}
 \alias{lbstat}
 \title{lbstat.}
+\description{
+lbstat.
+}
