@@ -3,7 +3,7 @@
 #' export the model as a table with confidence interval and p-values
 #' 
 #' @param mod a lm, glm or coxph object
-#' @param ... other options passed to \code{ci}
+#' @param ... other options passed to \code{confint}
 #' 
 #' @examples
 #' \dontrun{
