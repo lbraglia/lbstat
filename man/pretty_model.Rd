@@ -9,7 +9,7 @@ pretty_model(mod, ...)
 \arguments{
 \item{mod}{a lm, glm or coxph object}
 
-\item{...}{other options passed to \code{ci}}
+\item{...}{other options passed to \code{confint}}
 }
 \description{
 export the model as a table with confidence interval and p-values

@@ -120,6 +120,7 @@ var_select <- function(formula,
                             family = family)
         })
         ## Multivariate variables and estimate
+        ## browser()
         multi_vars <- names(
             unlist(Filter(function(x) x < purposeful_p, uni_tests))
         )
@@ -184,19 +185,18 @@ purposeful_table <- function(unis, multi){
     ## univariate preprocessing
     uni_pm <- lapply(unis, function(x) {
         tmp <- pretty_model(x)
-        tmp[rownames(tmp) %nin% '(Intercept)', ]
+        tmp <- tmp[rownames(tmp) %nin% '(Intercept)', ]
+        tmp$variable <- gsub("^.+\\.", "", rownames(tmp))
+        tmp
     })
-    uni_pm <- do.call(rbind, uni_pm)
-    uni_pm <- cbind(data.frame(
-        'variable' = gsub("^.+\\.", "", rownames(uni_pm))),
-        uni_pm)
+    uni_pm <- do.call(rbind, uni_pm)[, c(5, 1:4)]
     rownames(uni_pm) <- NULL
     ## order of variables in the table
     uni_order <- uni_pm$variable
 
     ## multivariate preprocessing
     multi_pm <- pretty_model(multi)
-    multi_pm[rownames(multi_pm) %nin% '(Intercept)', ]
+    multi_pm <- multi_pm[rownames(multi_pm) %nin% '(Intercept)', ]
     multi_pm <- cbind(data.frame('variable' = rownames(multi_pm)), multi_pm)
     rownames(multi_pm) <- NULL
     

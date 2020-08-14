@@ -2,16 +2,17 @@
 % Please edit documentation in R/var_select.R
 \name{var_select}
 \alias{var_select}
-\title{Select predictors of a given}
+\title{Select predictors}
 \usage{
 var_select(
   formula,
   data,
   family = c("gaussian", "binomial", "poisson", "multinomial", "cox", "mgaussian"),
-  method = c("lasso", "ridge", "step"),
+  method = c("lasso", "ridge", "step", "purposeful"),
   cv_nfolds = 10,
   lambdas = NULL,
-  seed = 1
+  seed = 1,
+  purposeful_p = 0.2
 )
 }
 \arguments{
@@ -21,15 +22,22 @@ var_select(
 
 \item{family}{type of variable predicted}
 
-\item{method}{which method to use}
+\item{method}{which method to use ('lasso', 'ridge', 'step',
+'purposeful' or abbreviations)}
 
 \item{cv_nfolds}{crossvalidation subsamples for lasso and ridge}
 
 \item{lambdas}{lambdas for lasso and ridge}
 
 \item{seed}{seed for pseudo-random number generation}
+
+\item{purposeful_p}{p-value in univariate analysis below which a
+variable is included in multivariate analysis}
 }
 \description{
-Select best predictors using stepwise AIC, ridge regression or Lasso (with
-optimal lambda  determined according to crossvalidation for the latters)
+Select best predictors using alternatively stepwise AIC, ridge
+regression, Lasso (with optimal lambda determined according to
+crossvalidation for the latters) or simplified purposeful selection
+(aka start from univariate of each covariate specified in formula
+and select what to put in a final multivariate analysis)
 }
