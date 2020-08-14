@@ -201,8 +201,10 @@ purposeful_table <- function(unis, multi){
     rownames(multi_pm) <- NULL
     
     ## table composition
-    tab <- merge(uni_pm, multi_pm, by = 'variable', all.x = TRUE,
-                 suffixes = c(" - univ", " - multiv"))
+    if (! all(multi_pm$variable %in% uni_pm$variable))
+        stop("something went wrong")
+    tab <- lbmisc::merge(uni_pm, multi_pm, by = 'variable', all.x = TRUE,
+                         suffixes = c(" - univ", " - multiv"))
     tab <- tab[match(uni_order, tab$variable), ]
     rownames(tab) <- NULL
     tab
