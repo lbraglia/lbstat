@@ -7,59 +7,118 @@
 #'     \code{lm} for quantitative, \code{glm} for binomial factor,
 #'     \code{coxph} for \code{Surv}
 #' @param factor main estimate factor
-#' @param subgroups factor for subsetting and interaction test
+#' @param subgroups_df data.frame of factor for subsetting and
+#'     interaction test
 #' @param factor_lab label for the main factor under study (eg
 #'     Treatment in a RCT)
 #' @param subgroups_lab label for the subgroup (eg could by Histology,
 #'     Age class and so on)
 #' 
 #'@export
-subgroups <- function(ep, factor, subgroups, 
+subgroups <- function(ep, factor,
+                      subgroups_df = NULL, 
                       factor_lab = 'Treatment',
-                      subgroups_lab = 'Subgroup',
+                      subgroups_lab = names(subgroups_df),
                       ...)
 {
-    if (!is.factor(subgroups)) stop("subgroups must be a factor")
+    sub_error_msg <- "subgroups must be a data.frame of factors"
+    if (!is.data.frame(subgroups_df)) stop(sub_error_msg)
+    all_factors <- all(unlist(lapply(subgroups_df, is.factor)))
+    if (!all_factors) stop(sub_error_msg)
     UseMethod("subgroups")
 }
 
-#'@export
-subgroups.Surv <- function(ep, factor, subgroups, 
-                           factor_lab = 'Treatment',
-                           subgroups_lab = 'Subgroup',
-                           ...) 
+
+## funzione che effettua la stima in un sottogruppo
+cox_subgroup_worker <- function(f, data, group_label)
 {
-    data <- data.frame(ep = ep, factor = factor, subgroups = subgroups)
+    est <- tryCatch({
+        ## km per le numerosità
+        fit  <- survival::survfit(f, data = data)
+        sfit <- summary(fit)
+
+        ## caso con una categorica come effetto
+        if (!is.null(sfit$table)) {
+            groups_labs <-  gsub("^.+=(.+)", "\\1", rownames(sfit$table))
+            n <- t(sfit$table[, c('records', 'events')])
+            dim(n) <- NULL
+            n_headers <- paste(rep(groups_labs, each = 2),
+                               c("_n", "_ev"), sep = "")
+            n <- as.data.frame(setNames(as.list(n), n_headers))
+        } else {
+            ## caso con una quantitativa come effetto
+            n <- data.frame('n' = sfit$n, 'ev' = sfit$nevent)
+        }
+
+        ## cox per la stima di effetto
+        cox <- survival::coxph(formula = f, data = data)
+        effects_names <- c('HR', 'CI Lower','CI Upper', 'P value')
+        effects <- data.frame('Group' = group_label,
+                              setNames(pretty_model(cox), effects_names))
+        list('n' = n, 'effects' = effects)
+    }, error = function(x) invisible(NULL)) 
+    est
+}
+
+
+## funzione worker per surv (tutte le stime per sottogruppi dati da UNA
+## variabile di creazione gruppi
+single_worker_Surv <- function(ep, factor, subgroup, subgroup_lab){
+    ## qui ep, factor e subgroup sono ciascuno una sola variabile!
+    data <- data.frame(ep = ep, factor = factor,
+                       subgroups = droplevels(subgroup))
     main_f   <- ep ~ factor
-    subs_f   <- ep ~ subgroups
-    int_f    <- ep ~ factor * subgroups
-    # stima main, stima nei subset e stima con interazione
+    int_f    <- ep ~ factor * subgroup
+    # test di interazione
     main_cox <- survival::coxph(formula = main_f, data = data)
-    subs_cox <- survival::coxph(formula = subs_f, data = data)
     int_cox  <- survival::coxph(formula = int_f, data = data)
-    ## test di interazione
     int_test <- anova(int_cox, main_cox)[2, 'P(>|Chi|)']
-    ## sfit <- summary(fit)
-    ## cox <- coxph(f, data = x)
-    ## scox <- summary(cox)
-    
-    ## ## tabella dei numeri
-    ## n <- t(sfit$table[, c('records', 'events')])
-    ## dim(n) <- NULL
-    ## n <- as.data.frame(setNames(as.list(n), 
-    ##                             c('std_n', 'std_ev', 'ht_n', 'ht_ev')))
-    ## ## tabella effetti
-    ## effetti <- setNames(pretty_model(cox), c('HR', 'low', 'up', 'p'))
-    ## effetti[n$ht_ev %in% 0 | n$std_ev %in% 0, ] <- NA
-    ## effetti$hr_label <- sprintf("%.2f (%.2f - %.2f)", 
-    ##                             effetti$HR,
-    ##                             effetti$low,
-    ##                             effetti$up)
-    ## cbind(gruppo, n, effetti)
+    ## stime main e nei substrati
+    datasets <- c(
+        list('All' = data),
+        setNames(split(data, f = subgroup), 
+                 sprintf("%s: %s", subgroup_lab, levels(subgroup))))
+    estimates <- Map(cox_subgroup_worker, 
+                     list(main_f), 
+                     datasets,
+                     names(datasets))
+
+    ## TODOHERE
+    n <- do.call(rbind, lapply(estimates, function(x) x$n))
+    effects <- do.call(rbind, lapply(estimates, function(x) x$effects))
+    names(estimates) <- names(datasets)
+    estimates <- do.call(rbind, estimates)
+    rownames(estimates) <- NULL
+    estimates$Interaction <- c(NA, int_test, rep(NA, nrow(estimates) - 2L))
+
     
     ## return
-    list(int_cox, int_test)
+    estimates
 }
+
+
+#'@export
+subgroups.Surv <- function(ep, factor, subgroups_df, 
+                           factor_lab  = 'Treatment',
+                           subgroups_lab = names(subgroups_df),
+                           ...) 
+{
+
+    ## do single_worker_Surv for each subgroups variable
+    res <- Map(single_worker_Surv,
+               list(ep), list(factor),
+               subgroups_df, as.list(subgroups_lab))
+    ## se vi è più di una variabile di subgrouping, tieni la stima main
+    ## solo nel primo caso
+    if (length(res) > 1L) {
+        keep_main <- function(x, id) if (id == 1L) x else x[-1 ,]
+        ## browser()
+        res <- Map(keep_main, res, as.list(seq_along(res)))
+        do.call(rbind, res)
+    } else res[[1]]
+}
+
+
 
 ## =========================================================================
 ## ----------------------------------------------------------     SARCULATOR
