@@ -6,9 +6,9 @@
 \usage{
 subgroups(
   ep,
-  factor,
+  factors_df = NULL,
   subgroups_df = NULL,
-  factor_lab = "Treatment",
+  factors_lab = names(factors_df),
   subgroups_lab = names(subgroups_df),
   ...
 )
@@ -18,12 +18,13 @@ subgroups(
 \code{lm} for quantitative, \code{glm} for binomial factor,
 \code{coxph} for \code{Surv}}
 
-\item{factor}{main estimate factor}
+\item{factors_df}{a data.frame with main estimate factors (eg in a
+trial could be a 1 column with treatment variable)}
 
 \item{subgroups_df}{data.frame of factor for subsetting and
 interaction test}
 
-\item{factor_lab}{label for the main factor under study (eg
+\item{factors_lab}{label for the main factor under study (eg
 Treatment in a RCT)}
 
 \item{subgroups_lab}{label for the subgroup (eg could by Histology,

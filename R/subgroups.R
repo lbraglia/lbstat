@@ -56,10 +56,12 @@ cox_subgroup_worker <- function(f, data, group_label)
 
         ## cox per la stima di effetto
         cox <- survival::coxph(formula = f, data = data)
-        effects_names <- c('HR', 'CI Lower','CI Upper', 'P value')
-        effects <- data.frame('Group' = group_label,
-                              setNames(pretty_model(cox), effects_names))
-        cbind(n, effects)
+        effects_names <- c('hr', 'ci_lower','ci_upper', 'p')
+        res <- data.frame('group' = group_label,
+                          n,
+                          setNames(pretty_model(cox), effects_names))
+        
+        res
     }, error = function(x) invisible(NULL)) 
     est
 }
@@ -93,7 +95,7 @@ single_worker_Surv <- function(ep, factor, subgroup, subgroup_lab){
     names(estimates) <- names(datasets)
     estimates <- do.call(rbind, estimates)
     rownames(estimates) <- NULL
-    estimates$Interaction <- c(NA, int_test, rep(NA, nrow(estimates) - 2L))
+    estimates$interaction_p <- c(NA, int_test, rep(NA, nrow(estimates) - 2L))
     
     ## return
     estimates
@@ -121,14 +123,15 @@ subgroups.Surv <- function(ep,
             keep_main <- function(x, id) if (id == 1L) x else x[-1 ,]
             ## browser()
             res <- Map(keep_main, res, as.list(seq_along(res)))
-            do.call(rbind, res)
+            res <- do.call(rbind, res)
+            rownames(res) <- NULL
+            res
         } else res[[1]]
     }
     
     ## do this for each factor under analysis
     final_res <- lapply(factors_df, factor_worker)
     names(final_res) <- factors_lab
-    
     final_res
 }
 
