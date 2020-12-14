@@ -57,9 +57,18 @@ cox_subgroup_worker <- function(f, data, group_label)
         ## cox per la stima di effetto
         cox <- survival::coxph(formula = f, data = data)
         effects_names <- c('hr', 'ci_lower','ci_upper', 'p')
+        effects <- setNames(pretty_model(cox), effects_names)
+
+        effects$hr_string <- sprintf("%.3f (%.3f - %.3f)",
+                                     effects$hr,
+                                     effects$ci_lower,
+                                     effects$ci_upper)
+        var_order <- c('hr', 'ci_lower','ci_upper',
+                       'hr_string', 'p')
         res <- data.frame('group' = group_label,
                           n,
-                          setNames(pretty_model(cox), effects_names))
+                          effects[, var_order])
+        ## quality control
         
         res
     }, error = function(x) invisible(NULL)) 
@@ -95,8 +104,8 @@ single_worker_Surv <- function(ep, factor, subgroup, subgroup_lab){
     names(estimates) <- names(datasets)
     estimates <- do.call(rbind, estimates)
     rownames(estimates) <- NULL
-    estimates$interaction_p <- c(NA, int_test, rep(NA, nrow(estimates) - 2L))
-    
+    estimates$interaction_p <-
+        pretty_pval(c(NA, int_test, rep(NA, nrow(estimates) - 2L)))
     ## return
     estimates
 }
