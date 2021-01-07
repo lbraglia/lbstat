@@ -69,6 +69,8 @@ sg_fplotter_quali <- function(sg, ...){
             'hr_string', 'HR',
             'interaction_p', 'Int. p')
     head <- recode(table_text_vars, from_to = ft) # sarebbe da pretty printare
+    head <- gsub("_n", " - n", head)
+    head <- gsub("_ev", " - ev", head)
     labeltext <- sg[, table_text_vars]
     header <- data.frame(as.list(head))
     names(header) <- table_text_vars
