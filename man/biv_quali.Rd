@@ -17,7 +17,7 @@ biv_quali(
   exclude_NA_perc = TRUE,
   NA_string = "NA",
   freq_sorting = c(NA, "desc", "asc"),
-  test = c("auto", "none", "fisher", "chisq"),
+  test = c("auto", "none", "fisher", "chisq", "mcnemar"),
   test_params = list(),
   latex = TRUE,
   latex_placement = "ht",
@@ -60,9 +60,9 @@ captions and excel sheets)}
 based sorting) "\code{desc}" (descending) or "\code{asc}"
 (ascending). Sorting based on row totals.}
 
-\item{test}{one of 'auto', 'none', 'fisher', 'chi': if \code{auto}
-(default) fisher or chi square test will be performed (using
-\code{fisher_needed} to decide which one)}
+\item{test}{one of 'auto', 'none', 'fisher', 'chisq', 'mcnemar': if
+\code{auto} (default) fisher or chi square test will be
+performed (using \code{fisher_needed} to decide which one)}
 
 \item{test_params}{a list of parameters to be passed to the test
 performing function}

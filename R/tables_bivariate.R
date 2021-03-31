@@ -153,9 +153,9 @@ bivariate_tables <-
 #' @param freq_sorting freq based sorting: can be \code{NA} (no freq
 #'     based sorting) "\code{desc}" (descending) or "\code{asc}"
 #'     (ascending). Sorting based on row totals.
-#' @param test one of 'auto', 'none', 'fisher', 'chi': if \code{auto}
-#'     (default) fisher or chi square test will be performed (using
-#'     \code{fisher_needed} to decide which one)
+#' @param test one of 'auto', 'none', 'fisher', 'chisq', 'mcnemar': if
+#'     \code{auto} (default) fisher or chi square test will be
+#'     performed (using \code{fisher_needed} to decide which one)
 #' @param test_params a list of parameters to be passed to the test
 #'     performing function
 #' @param latex output the table using \code{xtable::xtable}
@@ -195,7 +195,7 @@ biv_quali <- function(x = NULL,
                       NA_string = 'NA',
                       ## round_digits = 3,
                       freq_sorting = c(NA, 'desc', 'asc'),
-                      test = c('auto', 'none', 'fisher', 'chisq'),
+                      test = c('auto', 'none', 'fisher', 'chisq', 'mcnemar'),
                       test_params = list(),
                       latex = TRUE,
                       latex_placement = 'ht',
@@ -253,7 +253,7 @@ biv_quali <- function(x = NULL,
     freq_sorting <- match.arg(freq_sorting)
     abs_freq <- table(x, y, useNA = useNA)
     row_sums <- rowSums(abs_freq)
-    test <- match.arg(test)
+    ## test <- match.arg(test)
 
     if (freq_sorting %in% c('asc', 'desc')){
         there_are_NA <- is.na(rownames(abs_freq)[nrow(abs_freq)])
@@ -363,7 +363,7 @@ biv_quali <- function(x = NULL,
     colnames(rval)[is.na(colnames(rval))] <- NA_string 
 
     ## test handling
-    if (test %in% c('auto', 'fisher', 'chisq')){
+    if (test %in% c('auto', 'fisher', 'chisq', 'mcnemar')){
         ## handle auto
         if ('auto' == test)
             test <- if (fisher_needed(x = x, y = y)) 'fisher' else 'chisq'
@@ -375,8 +375,11 @@ biv_quali <- function(x = NULL,
         } else if ('chisq' == test) {
             test_fun <- stats::chisq.test
             test_name <- 'Chi square'
+        } else if ('mcnemar' == test) {
+            test_fun <- stats::mcnemar.test
+            test_name <- 'McNemar'
         } else
-            stop('At this point test should be fisher or chisq ...')
+            stop('At this point test should be decided ...')
 
         ## add parameters
         test <- if (length(test_params) > 0L)

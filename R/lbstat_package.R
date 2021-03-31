@@ -20,6 +20,7 @@
 #' @importFrom stats addmargins
 #' @importFrom stats anova
 #' @importFrom stats chisq.test
+#' @importFrom stats mcnemar.test
 #' @importFrom stats coef
 #' @importFrom stats confint
 #' @importFrom stats cor.test
