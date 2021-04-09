@@ -2,6 +2,8 @@
 #'
 #' @name lbstat
 #' @docType package
+#' @importFrom boot boot
+#' @importFrom boot boot.ci
 #' @importFrom glmnet cv.glmnet
 #' @importFrom glmnet glmnet
 #' @importFrom graphics abline

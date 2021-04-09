@@ -15,7 +15,7 @@ median_ci <- function(x, conf = 0.95, R = 10000){
          }
     boot_f <- function(data, i) f(data[i])
     res <-  boot::boot(data = x, statistic = boot_f, R = R)
-    ci <- boot.ci(res, type = if (ord) 'perc' else 'bca', conf = conf)
+    ci <- boot::boot.ci(res, type = if (ord) 'perc' else 'bca', conf = conf)
     est <- f(x)
     boot_ci <- ci[[4]][4:5]
     res <- c(est, boot_ci)
@@ -51,7 +51,7 @@ median_diff_ci <- function(x, y, R = 10000,
         y_boot <- sample(y, replace = TRUE)
         res <- c(res, f(y_boot) - f(x_boot))
     }
-    boot_ci <- quantile(res, probs = c(0.025, 0.975))
+    boot_ci <- quantile(res, probs = c(0.025, 0.975), na.rm = TRUE)
     ## intervallo di confidenza
     rval <- c(est, boot_ci)
     nm <- c('Est', 'Lower', "Upper")
