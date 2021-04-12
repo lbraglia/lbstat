@@ -59,7 +59,7 @@ median_diff_ci <- function(x, y, R = 10000,
     rval <- as.data.frame(as.list(rval))
     ## test di mood
     if (test == 'mood'){
-        rval$p_value <- pretty_pval(mood.test(x = x, y = y)$p.value)
+        rval$p_value <- pretty_pval(mood.median.test(x = x, y = y)$p.value)
     }
     rval
 }

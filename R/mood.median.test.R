@@ -3,7 +3,7 @@
 #' @param x first group of data
 #' @param y second group of data
 #' @export
-mood.test <- function(x, y){
+mood.median.test <- function(x, y){
     data <- c(x, y)
     group <- factor(c(rep(1, length(x)), rep(2, length(y))))
     med <- median(data, na.rm = TRUE)
