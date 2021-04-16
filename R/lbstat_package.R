@@ -38,4 +38,5 @@
 #' @importFrom xtable label
 #' @importFrom xtable print.xtable
 #' @importFrom xtable xtable
+#' @importFrom parallel detectCores
 NULL

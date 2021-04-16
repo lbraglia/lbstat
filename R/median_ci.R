@@ -14,12 +14,15 @@ median_ci <- function(x, conf = 0.95, R = 10000){
              function(y) stats::median(y, na.rm = TRUE)
          }
     boot_f <- function(data, i) f(data[i])
-    res <-  boot::boot(data = x, statistic = boot_f, R = R)
+    res <-  boot::boot(data = x, statistic = boot_f, R = R## ,
+                       ## parallel = 'multicore',
+                       ## ncpus = parallel::detectCores()
+                       )
     ci <- boot::boot.ci(res, type = if (ord) 'perc' else 'bca', conf = conf)
     est <- f(x)
     boot_ci <- ci[[4]][4:5]
     res <- c(est, boot_ci)
-    nm <- c('Est', 'Lower', "Upper")
+    nm <- c('Median', 'Lower CI', "Upper CI")
     if (ord) setNames(levels(x)[res], nm = nm)
     else setNames(res, nm = nm)
 }
@@ -54,7 +57,7 @@ median_diff_ci <- function(x, y, R = 10000,
     boot_ci <- quantile(res, probs = c(0.025, 0.975), na.rm = TRUE)
     ## intervallo di confidenza
     rval <- c(est, boot_ci)
-    nm <- c('Est', 'Lower', "Upper")
+    nm <- c('Median diff', 'Lower CI', "Upper CI")
     rval <- setNames(rval, nm = nm)
     rval <- as.data.frame(as.list(rval))
     ## test di mood
