@@ -381,11 +381,20 @@ biv_quali <- function(x = NULL,
         } else
             stop('At this point test should be decided ...')
 
+        ## ## add parameters
+        ## test <- if (length(test_params) > 0L)
+        ##             do.call(test_fun, c(list(x = x, y = y), test_params))
+        ##         else
+        ##             do.call(test_fun, list(x = x, y = y))
+        
+        if (length(test_params) > 0L) {
+            test_params <- c(list(x = x, y = y), test_params)
+        } else {
+            test_params <- list(x = x, y = y)
+        }
+            
         ## add parameters
-        test <- if (length(test_params) > 0L)
-                    do.call(test_fun, c(list(x = x, y = y), test_params))
-                else
-                    do.call(test_fun, list(x = x, y = y))
+        test <- do.call(test_fun, test_params)
         
         ## evaluate test and extract useful things
         test_p <- lbmisc::pretty_pval(test$p.value)
