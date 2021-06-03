@@ -21,9 +21,9 @@ ftest <- function(mod_base = NULL, mod_full = NULL, output = c('str', 'df')){
     names(rval) <- c('statistics', 'numdf', 'dendf', 'p')
     rownames(rval) <- 'F-test'
     if (output == 'df') rval 
-    else sprintf("F(%.0f, %.0f) = %.3f, p = %.3f", 
+    else sprintf("F(%.0f, %.0f) = %.3f, p %s", 
                  rval$numdf, 
                  rval$dendf,
                  rval$statistics,
-                 rval$p)
+                 lbmisc::pretty_pval(rval$p))
 }
