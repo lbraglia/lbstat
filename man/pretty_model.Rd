@@ -4,7 +4,7 @@
 \alias{pretty_model}
 \title{pretty print a statistical model}
 \usage{
-pretty_model(mod, ...)
+pretty_model(mod, add_stars = FALSE, ...)
 }
 \arguments{
 \item{mod}{a lm, glm or coxph object}

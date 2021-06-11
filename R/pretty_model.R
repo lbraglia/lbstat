@@ -33,7 +33,7 @@
 #' pretty_model(mod_coxph)
 #' }
 #' @export
-pretty_model <- function(mod, ...){
+pretty_model <- function(mod, add_stars = FALSE, ...){
     est <- stats::coef(mod)
     ci <- stats::confint(mod, ...)
     smod <- summary(mod)
@@ -58,8 +58,11 @@ pretty_model <- function(mod, ...){
     }
     rval <- f(cbind(est, ci))
     rval <- data.frame(rval, pretty_pval(p))
+    if (add_stars)
+        rval[, "p_star"] <- pval_stars(p)
     ci_levels <- sprintf("(%s)", colnames(ci))
     ci_colnames <- paste(c('Lower CI', 'Upper CI'), ci_levels)
-    colnames(rval) <- c(estname, ci_colnames, 'p-value')
+    p_colnames <- if (add_stars) c('p-value', 'stars') else 'p-value'
+    colnames(rval) <- c(estname, ci_colnames, p_colnames)
     rval
 }
