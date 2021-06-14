@@ -393,8 +393,38 @@ biv_quali <- function(x = NULL,
             test_params <- list(x = x, y = y)
         }
             
-        ## add parameters
-        test <- do.call(test_fun, test_params)
+        ## do the test and handle shit
+        test <- tryCatch(do.call(test_fun, test_params),
+                         error = function(x){
+                             ## nel caso di fisher aggiungi il simulate.p.value
+                             ## se consigliato
+                             if (test_name == 'Fisher'){
+                                 sim_p <- grepl('simulate.p.value', x$message)
+                                 if (sim_p){
+                                     test_params <- c(
+                                         test_params,
+                                         list(simulate.p.value = TRUE))
+                                     do.call(test_fun, test_params)
+                                 }
+                             }
+                         },
+                         warning = function(x){
+                             ## nel caso di chisquare aggiungi il
+                             ## simulate.p.value se l'approssimazione non
+                             ## è corretta
+                             ## https://stats.stackexchange.com/questions/81483
+                             if (test_name == 'Chi square'){
+                                 msg <- 'Chi-squared approximation may be incorrect'
+                                 apprx <- grepl(msg, x$message)
+                                 if (apprx){
+                                     test_params <- c(
+                                         test_params,
+                                         list(simulate.p.value = TRUE))
+                                     do.call(test_fun, test_params)
+                                 }
+                             }
+
+                         })
         
         ## evaluate test and extract useful things
         test_p <- lbmisc::pretty_pval(test$p.value)
