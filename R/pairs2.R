@@ -27,8 +27,8 @@ pairs_lower <- function(x, y){
     spearman <- round(cor(x, y, use = use, method = 'spearman'), digits = dgts)
     txt_pearson <- paste0("Pearson = ", pearson)
     txt_spearman <- paste0("Spearman = ", spearman)
-    text(0.5, 0.75, txt_pearson)
-    text(0.5, 0.25, txt_spearman)
+    text(0.5, 0.66, txt_pearson)
+    text(0.5, 0.33, txt_spearman)
     # cex.cor <- 0.8/strwidth(txt)
     ## text(0.5, 0.5, txt, cex = cex.cor * r)
 }
@@ -59,7 +59,7 @@ pairs_diagonal <- function(x, ...){
 #' @return
 #' @export
 pairs2 <- function(x, ...){
-    pairs(x = x
+    pairs(x = x,
           upper.panel = pairs_upper,
           lower.panel = pairs_lower,
           diag.panel  = pairs_diagonal,
