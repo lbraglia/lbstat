@@ -15,5 +15,5 @@ prop_ci <- function(x, label = 'Yes'){
                     test$estimate*100, test$conf.int*100), nrow = 1)
     setNames(data.frame(res),
              c('N', 'NA', 'Available', sprintf('n %s', label),
-               'Est', 'Low.Ci', 'Up.Ci'))
+               'Prop', 'Low.Ci', 'Up.Ci'))
 }
