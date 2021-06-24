@@ -153,7 +153,9 @@ raw_dispatcher <- function(x, ## dataset
                         ## responses variable
                         possible_caption_comment_variable <-
                             gsub("_$", "", involved_prefix)
-                        cm <- comment(x[, possible_caption_comment_variable])
+                        cm <- tryCatch(
+                            comment(x[, possible_caption_comment_variable]),
+                            error = function(m) NULL)
                         perc_f_params$caption <-
                             if (is.null(cm)) clean(involved_prefix) else cm
                         ## perc_f_params$caption <- "clean(involvedprefix)"
