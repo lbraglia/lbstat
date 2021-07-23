@@ -47,12 +47,13 @@ desc <- function(x, na.rm = TRUE, exclude = ''){
     Exclude <- c(any(exclude %in% 'n'),
                  any(exclude %in% c('na',NA)),
                  any(exclude %in% c('min')),
-                 any(exclude %in% c('1st qu.')),
-                 any(exclude %in% c('median')),
-                 any(exclude %in% c('mean')),
-                 any(exclude %in% c('3rd qu.')),
                  any(exclude %in% c('max')),
-                 any(exclude %in% c('std. dev.')))
+                 any(exclude %in% c('median')),
+                 any(exclude %in% c('1st qu.')),
+                 any(exclude %in% c('3rd qu.')),
+                 any(exclude %in% c('mean')),
+                 any(exclude %in% c('std. dev.'))
+                 )
     rval <-  if(all(is.na(x))) {
                  c(length(x),  
                    sum(is.na(x)),
@@ -61,22 +62,23 @@ desc <- function(x, na.rm = TRUE, exclude = ''){
                  c(length(x),
                    sum(is.na(x)),
                    min(x, na.rm = na.rm),
-                   qq[1],
-                   qq[2],
-                   mean(x, na.rm = na.rm),
-                   qq[3],
                    max(x, na.rm = na.rm), 
+                   qq[2],
+                   qq[1],
+                   qq[3],
+                   mean(x, na.rm = na.rm),
                    sd(x, na.rm = na.rm))
              }
     names(rval) <- c('n',
                      'NA',
                      'Min',
-                     '1st Qu.',
-                     'Median',
-                     'Mean',
-                     '3rd Qu.',
                      'Max',
-                     'Std. Dev.')
+                     'Median',
+                     '1st Qu.',
+                     '3rd Qu.',
+                     'Mean',
+                     'Std. Dev.'
+                     )
 
     rval[!Exclude]
     
