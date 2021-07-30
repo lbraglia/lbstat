@@ -5,7 +5,7 @@
 \title{Median bootstrap confidence interval (BCA or parametric for ordered
 factors) for numeric and ordered factor}
 \usage{
-median_ci(x, conf = 0.95, R = 10000)
+median_ci(x, conf = 0.95, R = 10000, parallel = c("multicore", "no"))
 }
 \arguments{
 \item{x}{data: an integer, numeric or ordered factor}

@@ -6,18 +6,21 @@
 #' @param R bootstrap repetitions
 #'
 #'@export 
-median_ci <- function(x, conf = 0.95, R = 10000){
+median_ci <- function(x, conf = 0.95, R = 10000,
+                      parallel = c('multicore', 'no'))
+{
+    parallel <- match.arg(parallel)
+    ncpus <- if (parallel %in% 'no') 1 else parallel::detectCores()
     ord <- is.ordered(x)
     f <- if (ord) {
-             function(y) stats::quantile(y, probs = 0.5, type = 1, na.rm = TRUE)
+             function(y) stats::quantile(y, probs = 0.5, type = 1,
+                                         na.rm = TRUE)
          } else { 
              function(y) stats::median(y, na.rm = TRUE)
          }
     boot_f <- function(data, i) f(data[i])
-    res <-  boot::boot(data = x, statistic = boot_f, R = R## ,
-                       ## parallel = 'multicore',
-                       ## ncpus = parallel::detectCores()
-                       )
+    res <-  boot::boot(data = x, statistic = boot_f, R = R,
+                       parallel = parallel, ncpus = ncpus)
     ci <- boot::boot.ci(res, type = if (ord) 'perc' else 'bca', conf = conf)
     est <- f(x)
     boot_ci <- ci[[4]][4:5]
