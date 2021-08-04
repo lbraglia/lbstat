@@ -25,5 +25,5 @@ ftest <- function(mod_base = NULL, mod_full = NULL, output = c('str', 'df')){
                  rval$numdf, 
                  rval$dendf,
                  rval$statistics,
-                 lbmisc::pretty_pval(rval$p))
+                 lbmisc::pretty_pval(rval$p, equal = TRUE))
 }
