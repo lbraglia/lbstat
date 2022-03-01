@@ -244,7 +244,9 @@ univ_quant_latex_printer <- function(y,
                          digits = c(0, digits),
                          label = label,
                          caption = caption)
-    xtable::print.xtable(xt, table.placement = latex_placement)
+    xtable::print.xtable(xt,
+                         table.placement = latex_placement,
+                         caption.placement = "top")
 
 }
 
@@ -427,7 +429,8 @@ univ_quali_latex_printer <- function(y,
                          label = label,
                          caption = caption)
     xtable::print.xtable(xt,
-                         table.placement = latex_placement)
+                         table.placement = latex_placement,
+                         caption.placement = "top")
 }
 
 
@@ -529,7 +532,9 @@ univ_perc <- function(x,
                                digits = c(0, 0, 2),
                                caption = caption,
                                label = label)
-        xtable::print.xtable(xtab, table.placement = latex_placement)
+        xtable::print.xtable(xtab,
+                             table.placement = latex_placement,
+                             caption.placement = "top")
         invisible(rval)
     } else {
         return(rval)

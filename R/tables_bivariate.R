@@ -476,7 +476,8 @@ biv_quali <- function(x = NULL,
                              digits = c(0, digits),
                              label = label, caption = caption)
         xtable::print.xtable(xt,
-                             table.placement = latex_placement)
+                             table.placement = latex_placement,
+                             caption.placement = "top")
         invisible(rval)
     } else {
         ## normal printing
@@ -611,7 +612,8 @@ biv_quant <- function(x, y,
                                caption = caption,
                                label = label)
         xtable::print.xtable(xtab,
-                             table.placement = latex_placement)
+                             table.placement = latex_placement,
+                             caption.placement = "top")
         invisible(rval)
     } else {
         message(caption)
@@ -833,7 +835,8 @@ biv_perc <- function(x = NULL,
                              caption = caption)
         xtable::print.xtable(xt,
                              include.rownames = FALSE,
-                             table.placement = latex_placement)
+                             table.placement = latex_placement,
+                             caption.placement = "top")
         invisible(rval)
     } else {
         ## normal printing

@@ -18,7 +18,13 @@
 #' @param argsNonNormal same as in tableone::CreateTableOne
 #' @param smd same as in tableone::CreateTableOne
 #' @param addOverall same as in tableone::CreateTableOne
-#' @param wb openxlsx WorkBook
+#' @param exact same as in tableone::print.TableOne
+#' @param nonnormal same as in tableone::print.TableOne
+#' @param catDigits same as in tableone::print.TableOne
+#' @param contDigits same as in tableone::print.TableOne
+#' @param pDigits  same as in tableone::print.TableOne
+#' @param wb if an openxlsx Workbook is given, Excel exporting to that
+#'     one will occurr
 #' @param sheet sheet name for openxlsx WorkBook
 #' @param print_latex print to latex
 #' @param label label for the created latex table
@@ -40,9 +46,16 @@ tableone <- function(vars,
                      argsNonNormal = list(NULL),
                      smd = TRUE,
                      addOverall = FALSE,
-                     # export
-                     wb = NULL, # export if this is a Workbook
+                     ## general settings (print.TableOne)
+                     exact = NULL,
+                     nonnormal = NULL,
+                     catDigits = 1,
+                     contDigits = 2,
+                     pDigits = 3,
+                     ## excel exporting
+                     wb = NULL, # export in excel if this is a Workbook
                      sheet = 'tab1',
+                     ## latex printing
                      print_latex = TRUE,
                      label = 'table1',
                      caption = 'Descrittive del campione')
@@ -66,18 +79,34 @@ tableone <- function(vars,
                           addOverall = addOverall)
     if (print_latex){
         # latex exporting
-        p <- print(tab1, printToggle = FALSE, noSpaces = TRUE)
-        print(knitr::kable(p, 
-                           format = "latex", 
-                           caption = caption, 
-                           label = label))
+        p <- print(tab1, printToggle = FALSE, noSpaces = TRUE,
+                   exact = exact,
+                   nonnormal = nonnormal,
+                   catDigits = catDigits,
+                   contDigits = contDigits,
+                   pDigits = pDigits)
+        k <- knitr::kable(p, 
+                          format = "latex", 
+                          caption = caption, 
+                          label = label,
+                          vline = "",
+                          toprule = "\\hline", 
+                          midrule = "\\hline",
+                          linesep = "",
+                          bottomrule = "\\hline")
+        print(k)
     }
     if (methods::is(wb, "Workbook")){
         ## excel exporting
         tab1mat <- print(tab1,
                          quote = FALSE, 
                          noSpaces = TRUE,
-                         printToggle = FALSE)
+                         printToggle = FALSE,
+                         exact = exact,
+                         nonnormal = nonnormal,
+                         catDigits = catDigits,
+                         contDigits = contDigits,
+                         pDigits = pDigits)
         xlsx_table(tab = tab1mat, test_df = NULL, 
                    wb = wb, sheet = sheet, caption = caption,
                    rowNames = TRUE, varname = 'notneeded')

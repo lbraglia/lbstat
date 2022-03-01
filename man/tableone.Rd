@@ -21,6 +21,11 @@ tableone(
   argsNonNormal = list(NULL),
   smd = TRUE,
   addOverall = FALSE,
+  exact = NULL,
+  nonnormal = NULL,
+  catDigits = 1,
+  contDigits = 2,
+  pDigits = 3,
   wb = NULL,
   sheet = "tab1",
   print_latex = TRUE,
@@ -61,7 +66,18 @@ tableone(
 
 \item{addOverall}{same as in tableone::CreateTableOne}
 
-\item{wb}{openxlsx WorkBook}
+\item{exact}{same as in tableone::print.TableOne}
+
+\item{nonnormal}{same as in tableone::print.TableOne}
+
+\item{catDigits}{same as in tableone::print.TableOne}
+
+\item{contDigits}{same as in tableone::print.TableOne}
+
+\item{pDigits}{same as in tableone::print.TableOne}
+
+\item{wb}{if an openxlsx Workbook is given, Excel exporting to that
+one will occurr}
 
 \item{sheet}{sheet name for openxlsx WorkBook}
 
