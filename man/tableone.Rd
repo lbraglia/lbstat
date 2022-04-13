@@ -66,9 +66,11 @@ tableone(
 
 \item{addOverall}{same as in tableone::CreateTableOne}
 
-\item{exact}{same as in tableone::print.TableOne}
+\item{exact}{same as in tableone::print.TableOne (if NULL
+fisher.test is used if lbmisc::fisher_needed)}
 
-\item{nonnormal}{same as in tableone::print.TableOne}
+\item{nonnormal}{same as in tableone::print.TableOne (if NULL, all
+is considered nonnormal)}
 
 \item{catDigits}{same as in tableone::print.TableOne}
 

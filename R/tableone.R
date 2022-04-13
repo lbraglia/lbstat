@@ -18,11 +18,13 @@
 #' @param argsNonNormal same as in tableone::CreateTableOne
 #' @param smd same as in tableone::CreateTableOne
 #' @param addOverall same as in tableone::CreateTableOne
-#' @param exact same as in tableone::print.TableOne
-#' @param nonnormal same as in tableone::print.TableOne
+#' @param exact same as in tableone::print.TableOne (if NULL
+#'     fisher.test is used if lbmisc::fisher_needed)
+#' @param nonnormal same as in tableone::print.TableOne (if NULL, all
+#'     is considered nonnormal)
 #' @param catDigits same as in tableone::print.TableOne
 #' @param contDigits same as in tableone::print.TableOne
-#' @param pDigits  same as in tableone::print.TableOne
+#' @param pDigits same as in tableone::print.TableOne
 #' @param wb if an openxlsx Workbook is given, Excel exporting to that
 #'     one will occurr
 #' @param sheet sheet name for openxlsx WorkBook
@@ -77,6 +79,30 @@ tableone <- function(vars,
                           argsNonNormal = argsNonNormal,
                           smd = smd,
                           addOverall = addOverall)
+
+    ## modifica a fisher laddove ce n'è bisogno
+    categoriche <- vars[sapply(data[, vars], lbmisc::is.qualitative)]
+    numeriche <- vars[sapply(data[, vars], lbmisc::is.quantitative)]
+    rimanenti <- vars %without% c(categoriche, numeriche)
+    if (length(rimanenti) > 0){
+        r <- paste0(rimanenti, collapse = ',')
+        message(rimanenti, ' non considerati nelle procedure automatiche (per test esatti o non normali, ocio)')
+    }
+    
+    ## test di fisher laddove necessario
+    if (length(categoriche) > 0 && is.null(exact)){
+        fn <- sapply(
+            categoriche,
+            function(v) lbstat::fisher_needed(data[, v], data[, strata])
+        )
+        exact <- categoriche[fn]
+    }
+
+    ## test di kruskal.wallis di default
+    if (length(numeriche) > 0 && is.null(nonnormal)){
+        nonnormal <- numeriche
+    }
+        
     if (print_latex){
         # latex exporting
         p <- print(tab1, printToggle = FALSE, noSpaces = TRUE,
