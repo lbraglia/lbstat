@@ -17,7 +17,7 @@
 #' @param testNonNormal same as in tableone::CreateTableOne
 #' @param argsNonNormal same as in tableone::CreateTableOne
 #' @param smd same as in tableone::CreateTableOne
-#' @param addOverall same as in tableone::CreateTableOne
+#' @param addOverall same as in tableone::CreateTableOne (but TRUE as default)
 #' @param exact same as in tableone::print.TableOne (if NULL
 #'     fisher.test is used if lbmisc::fisher_needed)
 #' @param nonnormal same as in tableone::print.TableOne (if NULL, all
@@ -47,7 +47,7 @@ tableone <- function(vars,
                      testNonNormal = kruskal.test,
                      argsNonNormal = list(NULL),
                      smd = TRUE,
-                     addOverall = FALSE,
+                     addOverall = TRUE,
                      ## general settings (print.TableOne)
                      exact = NULL,
                      nonnormal = NULL,
