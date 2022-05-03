@@ -84,13 +84,13 @@ tableone <- function(vars,
     categoriche <- vars[sapply(data[, vars], lbmisc::is.qualitative)]
     numeriche <- vars[sapply(data[, vars], lbmisc::is.quantitative)]
     rimanenti <- vars %without% c(categoriche, numeriche)
-    if (length(rimanenti) > 0){
+    if (length(rimanenti) > 0 && test){
         r <- paste0(rimanenti, collapse = ',')
         message(rimanenti, ' non considerati nelle procedure automatiche (per test esatti o non normali, ocio)')
     }
     
     ## test di fisher laddove necessario
-    if (length(categoriche) > 0 && is.null(exact)){
+    if (test && length(categoriche) > 0 && is.null(exact)){
         fn <- sapply(
             categoriche,
             function(v) lbstat::fisher_needed(data[, v], data[, strata])
