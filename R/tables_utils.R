@@ -8,8 +8,12 @@ xlsx_caption <- function(x){ ## x is a latex generated caption
 }
 
 ## helper for exporting tables ... very raw for now
-xlsx_table <- function(tab, test_df, wb, sheet, caption,
-                       varname, rowNames = TRUE)
+xlsx_table <- function(tab,
+                       test_df,
+                       wb, sheet,
+                       caption,
+                       varname,
+                       rowNames = TRUE)
 {
 
     if (sheet == '')

@@ -46,6 +46,7 @@ desc <- function(x, na.rm = TRUE, exclude = ''){
     exclude <- tolower(exclude)
     Exclude <- c(any(exclude %in% 'n'),
                  any(exclude %in% c('na',NA)),
+                 any(exclude %in% c('avail',NA)),
                  any(exclude %in% c('min')),
                  any(exclude %in% c('max')),
                  any(exclude %in% c('median')),
@@ -57,10 +58,12 @@ desc <- function(x, na.rm = TRUE, exclude = ''){
     rval <-  if(all(is.na(x))) {
                  c(length(x),  
                    sum(is.na(x)),
+                   length(x) - sum(is.na(x)),
                    rep(NA, 7))
              } else {
                  c(length(x),
                    sum(is.na(x)),
+                   length(x) - sum(is.na(x)),                   
                    min(x, na.rm = na.rm),
                    max(x, na.rm = na.rm), 
                    qq[2],
@@ -71,6 +74,7 @@ desc <- function(x, na.rm = TRUE, exclude = ''){
              }
     names(rval) <- c('n',
                      'NA',
+                     'Avail',
                      'Min',
                      'Max',
                      'Median',

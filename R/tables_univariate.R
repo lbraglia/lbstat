@@ -233,7 +233,7 @@ univ_quant_latex_printer <- function(y,
     rownames(tmp) <- strtrim(rownames(tmp), width = 32)
 
     ## 0 for n and NA, 2 for the others
-    digits <- (!(colnames(y) %in% c('n', 'NA')))*2
+    digits <- (!(colnames(y) %in% c('n', 'NA', 'Avail')))*2
 
     if (label == '') label <- sprintf('tab:%s', varname)
     if (caption %in% '') caption <- gsub('_', ' ', varname)

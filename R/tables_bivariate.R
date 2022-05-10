@@ -605,7 +605,7 @@ biv_quant <- function(x, y,
 
     if (latex) {
         ## 0 for n and NA, 2 for the others
-        digits <- (!(colnames(rval) %in% c('n', 'NA')))*2
+        digits <- (!(colnames(rval) %in% c('n', 'NA', 'Avail')))*2
         xtab <- xtable::xtable(rval,
                                ## align = 'c',
                                digits = c(0, digits),

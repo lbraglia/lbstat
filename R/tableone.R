@@ -133,9 +133,17 @@ tableone <- function(vars,
                          catDigits = catDigits,
                          contDigits = contDigits,
                          pDigits = pDigits)
-        xlsx_table(tab = tab1mat, test_df = NULL, 
-                   wb = wb, sheet = sheet, caption = caption,
-                   rowNames = TRUE, varname = 'notneeded')
+        ## trasforma a data.frame se no viene fatto in esportazione ed
+        ## aggiunge monnezza
+        Variables <- rownames(tab1mat)
+        tab1mat <- cbind(data.frame(Variables), tab1mat)
+        xlsx_table(tab = tab1mat,
+                   test_df = NULL, 
+                   wb = wb,
+                   sheet = sheet,
+                   caption = caption,
+                   rowNames = FALSE,  # aggiunte come colonna pulita
+                   varname = 'notneeded')
     }
     invisible(tab1)
 }
