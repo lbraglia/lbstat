@@ -56,7 +56,6 @@ pairs_diagonal <- function(x, ...){
 #' @param x data.frame
 #' @param ... other parameters passed to (but panel, lower.panel,
 #'     upper.panel, diag.panel)
-#' @return
 #' @export
 pairs2 <- function(x, ...){
     pairs(x = x,

@@ -12,9 +12,6 @@ pairs2(x, ...)
 \item{...}{other parameters passed to (but panel, lower.panel,
 upper.panel, diag.panel)}
 }
-\value{
-
-}
 \description{
 Battery included scatterplot matrix
 }

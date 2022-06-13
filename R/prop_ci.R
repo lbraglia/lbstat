@@ -17,3 +17,20 @@ prop_ci <- function(x, label = 'Yes'){
              c('N', 'NA', 'Available', sprintf('n %s', label),
                'Prop', 'Low.Ci', 'Up.Ci'))
 }
+
+
+#' Proportions of each label with confidence intervals
+#' 
+#' Proportion of a label with confidence interval
+#' @param x a vector (factor tipically)
+#' @examples
+#' props_cis(gl(2, 10))
+#' 
+#' @export
+props_cis <- function(x){
+    tmp <- dummify(x)
+    res <- lapply(tmp, function(y) 
+        prop_ci(factor(y, levels = c(0, 1), labels = c("no ev", "ev")), 
+                label = 'ev'))
+    do.call(rbind, res)
+}
