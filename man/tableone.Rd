@@ -21,6 +21,7 @@ tableone(
   argsNonNormal = list(NULL),
   smd = TRUE,
   addOverall = TRUE,
+  showAllLevels = TRUE,
   exact = NULL,
   nonnormal = NULL,
   catDigits = 1,
@@ -65,6 +66,8 @@ tableone(
 \item{smd}{same as in tableone::CreateTableOne}
 
 \item{addOverall}{same as in tableone::CreateTableOne (but TRUE as default)}
+
+\item{showAllLevels}{same as in tableone::print.TableOne (but TRUE as default)}
 
 \item{exact}{same as in tableone::print.TableOne (if NULL
 fisher.test is used if lbmisc::fisher_needed)}

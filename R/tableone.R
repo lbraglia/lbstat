@@ -18,6 +18,7 @@
 #' @param argsNonNormal same as in tableone::CreateTableOne
 #' @param smd same as in tableone::CreateTableOne
 #' @param addOverall same as in tableone::CreateTableOne (but TRUE as default)
+#' @param showAllLevels same as in tableone::print.TableOne (but TRUE as default)
 #' @param exact same as in tableone::print.TableOne (if NULL
 #'     fisher.test is used if lbmisc::fisher_needed)
 #' @param nonnormal same as in tableone::print.TableOne (if NULL, all
@@ -48,7 +49,8 @@ tableone <- function(vars,
                      argsNonNormal = list(NULL),
                      smd = TRUE,
                      addOverall = TRUE,
-                     ## general settings (print.TableOne)
+                     ## general settings (print.TableOne) 
+                     showAllLevels = TRUE,
                      exact = NULL,
                      nonnormal = NULL,
                      catDigits = 1,
@@ -108,6 +110,7 @@ tableone <- function(vars,
         p <- print(tab1,
                    printToggle = FALSE,
                    noSpaces = TRUE,
+                   showAllLevels = showAllLevels,
                    smd = smd,
                    exact = exact,
                    nonnormal = nonnormal,
@@ -131,6 +134,7 @@ tableone <- function(vars,
                          quote = FALSE, 
                          noSpaces = TRUE,
                          printToggle = FALSE,
+                         showAllLevels = showAllLevels,
                          smd = smd,
                          exact = exact,
                          nonnormal = nonnormal,
