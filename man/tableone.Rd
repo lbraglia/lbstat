@@ -5,9 +5,9 @@
 \title{tableone::CreateTableOne wrapper with latex and excel export}
 \usage{
 tableone(
+  data,
   vars,
   strata,
-  data,
   factorVars,
   includeNA = FALSE,
   test = TRUE,
@@ -35,11 +35,11 @@ tableone(
 )
 }
 \arguments{
+\item{data}{same as in tableone::CreateTableOne}
+
 \item{vars}{same as in tableone::CreateTableOne}
 
 \item{strata}{same as in tableone::CreateTableOne}
-
-\item{data}{same as in tableone::CreateTableOne}
 
 \item{factorVars}{same as in tableone::CreateTableOne}
 

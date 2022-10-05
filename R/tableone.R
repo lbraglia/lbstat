@@ -2,9 +2,9 @@
 #'
 #' tableone::CreateTableOne wrapper with latex and excel export
 #'
+#' @param data same as in tableone::CreateTableOne
 #' @param vars same as in tableone::CreateTableOne
 #' @param strata same as in tableone::CreateTableOne
-#' @param data same as in tableone::CreateTableOne
 #' @param factorVars same as in tableone::CreateTableOne
 #' @param includeNA same as in tableone::CreateTableOne
 #' @param test same as in tableone::CreateTableOne
@@ -33,9 +33,9 @@
 #' @param label label for the created latex table
 #' @param caption caption for the created latex table
 #' @export
-tableone <- function(vars,
+tableone <- function(data,
+                     vars,
                      strata,
-                     data,
                      factorVars,
                      includeNA = FALSE,
                      test = TRUE,
@@ -64,23 +64,31 @@ tableone <- function(vars,
                      label = 'table1',
                      caption = 'Descrittive del campione')
 {
+
+    if (missing(vars)) {
+        vars <- names(data)
+        if (!missing(strata))
+            vars <- vars %without% strata
+    }
+    
+    
     tab1 <- tableone::CreateTableOne(    
-                          vars = vars,
-                          strata = strata,
-                          data = data,
-                          factorVars = factorVars,
-                          includeNA = includeNA,
-                          test = test,
-                          testApprox = testApprox,
-                          argsApprox = argsApprox,
-                          testExact = testExact,
-                          argsExact = argsExact,
-                          testNormal = testNormal,
-                          argsNormal = argsNormal,
-                          testNonNormal = testNonNormal,
-                          argsNonNormal = argsNonNormal,
-                          smd = smd,
-                          addOverall = addOverall)
+                  vars = vars,
+                  strata = strata,
+                  data = data,
+                  factorVars = factorVars,
+                  includeNA = includeNA,
+                  test = test,
+                  testApprox = testApprox,
+                  argsApprox = argsApprox,
+                  testExact = testExact,
+                  argsExact = argsExact,
+                  testNormal = testNormal,
+                  argsNormal = argsNormal,
+                  testNonNormal = testNonNormal,
+                  argsNonNormal = argsNonNormal,
+                  smd = smd,
+                  addOverall = addOverall)
 
     ## modifica a fisher laddove ce n'è bisogno
     categoriche <- vars[sapply(data[, vars], lbmisc::is.qualitative)]
@@ -92,7 +100,7 @@ tableone <- function(vars,
     }
     
     ## test di fisher laddove necessario
-    if (test && length(categoriche) > 0 && is.null(exact)){
+    if (test && length(categoriche) > 0 && is.null(exact) && (!missing(strata))){
         fn <- sapply(
             categoriche,
             function(v) lbstat::fisher_needed(data[, v], data[, strata])
