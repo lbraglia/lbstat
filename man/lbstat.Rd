@@ -2,5 +2,13 @@
 % Please edit documentation in R/lbstat_package.R
 \docType{package}
 \name{lbstat}
+\alias{lbstat-package}
 \alias{lbstat}
 \title{lbstat.}
+\description{
+Miscellaneous stat-related utils.
+}
+\author{
+\strong{Maintainer}: Luca Braglia \email{lbraglia@gmail.com}
+
+}
