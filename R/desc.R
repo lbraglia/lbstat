@@ -1,3 +1,18 @@
+#' mode calculator
+#' 
+#' skewness calculator, parametrized as in
+#' \url{http://www.stata.com/manuals13/rsummarize.pdf}
+#' @param x a char or factor variable
+#' @source \url{https://stackoverflow.com/questions/2547402}
+#' @export
+Mode <- function(x) {
+  ux <- unique(x)
+  ux[which.max(tabulate(match(x, ux)))]
+}
+## mode <- function(x) names(which.max(table(x)))
+
+
+
 ## parametrized as in http://www.stata.com/manuals13/rsummarize.pdf
 ## r-th moment about the mean (helper function for skewness and kurtosis)
 m_r <- function(x, r = NULL, na.rm = FALSE){
@@ -6,7 +21,7 @@ m_r <- function(x, r = NULL, na.rm = FALSE){
     if (na.rm)
         x <- x[!is.na(x)]
     n <- length(x)
-    sum(  (x - mean(x, na.rm = na.rm))^r )/n
+    sum((x - mean(x, na.rm = na.rm))^r)/n
 }
 
 

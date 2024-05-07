@@ -2,6 +2,7 @@
 
 S3method(cor.test,data.frame)
 S3method(subgroups,Surv)
+export(Mode)
 export(Table)
 export(biv_mr)
 export(biv_perc)
