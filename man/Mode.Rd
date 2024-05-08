@@ -3,9 +3,6 @@
 \name{Mode}
 \alias{Mode}
 \title{mode calculator}
-\source{
-\url{https://stackoverflow.com/questions/2547402}
-}
 \usage{
 Mode(x)
 }

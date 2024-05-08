@@ -3,13 +3,13 @@
 #' skewness calculator, parametrized as in
 #' \url{http://www.stata.com/manuals13/rsummarize.pdf}
 #' @param x a char or factor variable
-#' @source \url{https://stackoverflow.com/questions/2547402}
 #' @export
-Mode <- function(x) {
-  ux <- unique(x)
-  ux[which.max(tabulate(match(x, ux)))]
-}
-## mode <- function(x) names(which.max(table(x)))
+Mode <- function(x) names(which.max(table(x)))
+##  \url{https://stackoverflow.com/questions/2547402}
+## Mode <- function(x) {
+##   ux <- unique(x)
+##   ux[which.max(tabulate(match(x, ux)))]
+## }
 
 
 
