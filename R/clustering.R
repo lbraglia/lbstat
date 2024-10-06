@@ -127,3 +127,31 @@ plot.gapAnalysis <- function(x) {
            legend = c("log(S_k) in data", "E(log(S_k)) uniform"),
            lty = 1:2, bg = "white")
 }
+
+
+#' Mahalanobis distance matrix
+#'
+#' Mahalanobis distance matrix
+#' 
+#' @export
+mahalanobis2 <- function(x, center = NULL, cov, inverted = FALSE, ...){
+    ## The mahalanobis command can only compute a vector of Mahalanobis
+    ## distances between one vector and one point.  So producing all
+    ## distances is more tedious; here's how to make a distance matrix:
+    if (is.null(center)){
+        ## if no center is provided, return the distance matrix of all
+        ## the distances
+        x_cov <- stats::cov(x)
+        mm <- apply(x, 1, function(single_unit)
+            stats::mahalanobis(x,
+                               center = single_unit,
+                               cov = x_cov,
+                               inverted = inverted,
+                               ...))
+        as.dist(mm)
+    } else {
+        ## otherwise do the standard mahalanobis
+        stats::mahalanobis(x, center = center, cov = cov,
+                           inverted = inverted, ...)
+    }
+}
