@@ -7,11 +7,13 @@
 #'
 #'@export 
 median_ci <- function(x, conf = 0.95, R = 10000,
+                      type = "bca",
                       parallel = c('multicore', 'no'))
 {
     parallel <- match.arg(parallel)
     ncpus <- if (parallel %in% 'no') 1 else parallel::detectCores()
     ord <- is.ordered(x)
+    if (ord) type <- 'perc'
     f <- if (ord) {
              function(y) stats::quantile(y, probs = 0.5, type = 1,
                                          na.rm = TRUE)
@@ -21,7 +23,7 @@ median_ci <- function(x, conf = 0.95, R = 10000,
     boot_f <- function(data, i) f(data[i])
     res <-  boot::boot(data = x, statistic = boot_f, R = R,
                        parallel = parallel, ncpus = ncpus)
-    ci <- boot::boot.ci(res, type = if (ord) 'perc' else 'bca', conf = conf)
+    ci <- boot::boot.ci(res, type = type, conf = conf)
     est <- f(x)
     boot_ci <- ci[[4]][4:5]
     res <- c(est, boot_ci)
