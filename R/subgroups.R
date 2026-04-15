@@ -30,6 +30,21 @@ subgroups <- function(ep,
     UseMethod("subgroups")
 }
 
+## LOGISTICA
+## .--------
+subgroups.factor <- function(ep,
+                                factors_df    = NULL,
+                                subgroups_df  = NULL,
+                                factors_lab   = names(factors_df),
+                                subgroups_lab = names(subgroups_df),
+                                ...)
+  stop("logistic not implemented yet")
+
+
+
+
+## COX
+## -----
 
 ## funzione che effettua la stima in un sottogruppo
 cox_subgroup_worker <- function(f, data, group_label)
@@ -83,13 +98,14 @@ single_worker_Surv <- function(ep, factor, subgroup, subgroup_lab){
     ## qui ep, factor e subgroup sono ciascuno una sola variabile!
     data <- data.frame(ep = ep, factor = factor,
                        subgroups = droplevels(subgroup))
-    main_f   <- ep ~ factor
+    main_f   <- ep ~ factor + subgroup
     int_f    <- ep ~ factor * subgroup
     # test di interazione
     main_cox <- survival::coxph(formula = main_f, data = data)
     int_cox  <- survival::coxph(formula = int_f, data = data)
     int_test <- anova(int_cox, main_cox)[2, 'P(>|Chi|)']
     ## stime main e nei substrati
+    within_f   <- ep ~ factor
     datasets <- c(
         list('All' = data),
         setNames(split(data, f = subgroup), 
@@ -143,6 +159,120 @@ subgroups.Surv <- function(ep,
     names(final_res) <- factors_lab
     final_res
 }
+
+
+## ## ---------------------------------------------------
+## ## LM normale
+## ## ---------------------------------------------------
+
+## ## funzione che effettua la stima in un sottogruppo
+## default_subgroup_worker <- function(f, data, group_label)
+## {
+##     ## browser()
+##     est <- tryCatch({
+##         if (is.factor(data$factor)) {
+##           ## ## caso con una categorica come effetto
+##           ## fit  <- lm(f, data = data)
+##           ## sfit <- summary(fit)
+##           ## groups_labs <-  gsub("^.+=(.+)", "\\1", rownames(sfit$table))
+##           ## n <- t(sfit$table[, c('records', 'events')])
+##           ## dim(n) <- NULL
+##           ## n_headers <- paste(rep(groups_labs, each = 2),
+##           ##                    c("_n", "_ev"), sep = "")
+##           ## n <- as.data.frame(setNames(as.list(n), n_headers))
+##           # da  fare
+##           stop("da implementare")
+##         } else {
+##           ## caso con una quantitativa come effetto
+##           mf <- lbmisc::NA_remove(model.frame(formula = f, data = data),
+##                                     quiet = TRUE)
+##             n <- data.frame('n' = nrow(mf)#,
+##                             ## 'ev' = sum(!lbsurv::is_censored(mf$ep))
+##                             )
+##         }
+##         ## lm per la stima di effetto
+##         mod <- lm(formula = f, data = data)
+##         effects_names <- c('est', 'ci_lower','ci_upper', 'p')
+##         effects <- setNames(pretty_model(mod), effects_names)
+##         effects$est_string <- sprintf("%.3f (%.3f - %.3f)",
+##                                      effects$est,
+##                                      effects$ci_lower,
+##                                      effects$ci_upper)
+##         var_order <- c('est', 'ci_lower','ci_upper',
+##                        'est_string', 'p')
+##         res <- data.frame('group' = group_label,
+##                           n,
+##                           effects[, var_order])
+##         ## remove first line (intercept)
+##         res[-1, ]
+##     }, error = function(x) invisible(NULL))
+##     est
+## }
+
+
+
+## subgroups.default <- function(ep,
+##                               factors_df    = NULL,
+##                               subgroups_df  = NULL,
+##                               factors_lab   = names(factors_df),
+##                               subgroups_lab = names(subgroups_df),
+##                               ...)
+## {
+##   ## worker used for each factor in turn
+##   factor_worker <- function(x){# x is a single variable/factor under study
+##     ## do single_worker_default for each subgroups variable
+##     res <- Map(single_worker_default,
+##                list(ep), list(x),
+##                subgroups_df, as.list(subgroups_lab))
+##     ## se vi C( piC9 di una variabile di subgrouping, tieni la stima main
+##     ## solo nel primo caso
+##     if (length(res) > 1L) {
+##       keep_main <- function(x, id) if (id == 1L) x else x[-1 ,]
+##       ## browser()
+##       res <- Map(keep_main, res, as.list(seq_along(res)))
+##       res <- do.call(rbind, res)
+##       rownames(res) <- NULL
+##       res
+##     } else res[[1]]
+##   }
+##   ## do this for each factor under analysis
+##   final_res <- lapply(factors_df, factor_worker)
+##   names(final_res) <- factors_lab
+##   final_res
+## }
+
+
+
+## single_worker_default <- function(ep, factor, subgroup, subgroup_lab){
+##   ## qui ep, factor e subgroup sono ciascuno una sola variabile!
+##   ## browser()
+##   data <- NA_remove(data.frame(ep = ep, factor = factor, subgr = droplevels(subgroup)),
+##                     quiet = TRUE)
+##   main_f   <- ep ~ factor + subgr
+##   int_f    <- ep ~ factor * subgr
+##   # test di interazione
+##   main_lm <- lm(formula = main_f, data = data)
+##   int_lm  <- lm(formula = int_f, data = data)
+##   int_test <- anova(int_lm, main_lm)[2, 'Pr(>F)']
+##   ## stime main e nei substrati
+##   datasets <- c(
+##     list('All' = data),
+##     setNames(split(data, f = data$subgr),
+##              sprintf("%s: %s", subgroup_lab, levels(data$subgr))))
+##   estimates <- Map(default_subgroup_worker,
+##                    list(main_f),
+##                    datasets,
+##                    names(datasets))
+##   n <- do.call(rbind, lapply(estimates, function(x) x$n))
+##   names(estimates) <- names(datasets)
+##   estimates <- do.call(rbind, estimates)
+##   rownames(estimates) <- NULL
+##   estimates$interaction_p <-
+##     pretty_pval(c(NA, int_test, rep(NA, nrow(estimates) - 2L)))
+##   ## return
+##   estimates
+## }
+
 
 
 
